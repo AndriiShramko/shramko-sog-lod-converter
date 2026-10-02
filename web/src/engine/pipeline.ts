@@ -140,24 +140,40 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
     }
 
     // --- progress bookkeeping
-    let workDone = 0; // estimated seconds of work completed (in current model units)
-    const totalWork = () => estimate();
+    // Finished work is counted in units (read passes, splats decimated, splats encoded) and priced
+    // at the CURRENT rates, exactly like the total: a re-calibrated rate moves both together instead
+    // of throwing the bar backwards. Rates are cumulative (all seconds / all units so far): per-call
+    // overhead on a tile's tiny coarse levels (a few thousand splats) must not be read as a per-splat
+    // cost — a last-level blend did that and inflated a 3.5 h ETA to 9 h 48 min with the bar falling
+    // from 7% to 2%.
+    let readPassesDone = 0;
+    let decSplatsDone = 0;
+    let encSplatsDone = 0;
+    let readSecSum = 0;
+    let decSecSum = 0;
+    let encSecSum = 0;
+    type StepKind = 'none' | 'read' | 'dec' | 'enc';
+    let step: { kind: StepKind; units: number } = { kind: 'none', units: 0 };
+    const price = (kind: StepKind, units: number) =>
+        kind === 'read' ? units * bodyBytes / readBps : kind === 'dec' ? units * decPer : kind === 'enc' ? units * encPer : 0;
+    let shownOverall = 0;
     let lastEmit = 0;
     let currentStageFraction = 0;
     let currentLabel = '';
     let currentStage: Stage = 'read';
     let currentTile = 0;
     let currentLevel: number | undefined;
-    let stepWork = 0; // estimated seconds of the running step
     const startWall = performance.now();
     const zipRef: { zip?: ZipWriter } = {};
     const report = (force = false) => {
         const now = performance.now();
         if (!force && now - lastEmit < 250) return;
         lastEmit = now;
-        const total = totalWork();
-        const done = Math.min(total, workDone + stepWork * currentStageFraction);
-        const overall = Math.min(0.995, 0.005 + 0.99 * (done / total));
+        const total = estimate();
+        const done = Math.min(total, price('read', readPassesDone) + price('dec', decSplatsDone) + price('enc', encSplatsDone) + price(step.kind, step.units) * currentStageFraction);
+        // never move backwards: a hold reads as "working", a drop reads as "broken"
+        shownOverall = Math.max(shownOverall, Math.min(0.995, 0.005 + 0.99 * (done / total)));
+        const overall = shownOverall;
         const elapsed = (now - startWall) / 1000;
         // blend model ETA with observed rate once some work is done
         const modelEta = Math.max(0, total - done);
@@ -237,7 +253,7 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
             // --- 3a. read pass
             currentStage = 'read';
             currentStageFraction = 0;
-            stepWork = bodyBytes / readBps;
+            step = { kind: 'read', units: 1 };
             currentLabel = groups.length > 1 ? `Reading the PLY (pass ${g + 1}/${groups.length})` : 'Reading the PLY';
             stage('read', currentLabel);
             report(true);
@@ -251,8 +267,10 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
             });
             const readSec = (performance.now() - tr) / 1000;
             timings.read += readSec;
-            readBps = bodyBytes / Math.max(0.001, readSec);
-            workDone += bodyBytes / readBps;
+            readSecSum += readSec;
+            readPassesDone++;
+            readBps = readPassesDone * bodyBytes / Math.max(0.001, readSecSum);
+            step = { kind: 'none', units: 0 };
 
             // --- 3b. convert each tile of the group
             for (let gi = 0; gi < group.length; gi++) {
@@ -286,7 +304,7 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
                     currentStage = 'decimate';
                     currentLevel = k;
                     currentStageFraction = 0;
-                    stepWork = n * decPer;
+                    step = { kind: 'dec', units: n };
                     currentLabel = `Tile ${tile + 1}/${plan.tileCount}: building level ${k} of ${levelsPlan.length - 1} (${fmt(n)} → ${fmt(target)} splats)`;
                     stage('decimate', currentLabel);
                     report(true);
@@ -303,10 +321,10 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
                     levels.push(await readPly(memFs.source(name), pool));
                     const dsec = (performance.now() - td) / 1000;
                     timings.decimate += dsec;
-                    workDone += stepWork;
-                    stepWork = 0;
-                    // calibrate: blend measured rate in
-                    decPer = 0.5 * decPer + 0.5 * (dsec / Math.max(1, n));
+                    decSecSum += dsec;
+                    decSplatsDone += n;
+                    decPer = decSecSum / Math.max(1, decSplatsDone);
+                    step = { kind: 'none', units: 0 };
                 }
 
                 // LOD writer for this tile → files stream into the zip via the merger
@@ -315,7 +333,7 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
                 currentLevel = undefined;
                 currentStageFraction = 0;
                 const tileTotal = levels.reduce((a, l) => a + l.meta.numGaussians, 0);
-                stepWork = tileTotal * encPer;
+                step = { kind: 'enc', units: tileTotal };
                 currentLabel = `Tile ${tile + 1}/${plan.tileCount}: building the LOD tree`;
                 stage('encode', currentLabel);
                 report(true);
@@ -338,9 +356,10 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
                 for (const l of levels) await l.close();
                 const esec = (performance.now() - te) / 1000;
                 timings.encode += esec;
-                workDone += stepWork;
-                stepWork = 0;
-                encPer = 0.5 * encPer + 0.5 * (esec / Math.max(1, tileTotal));
+                encSecSum += esec;
+                encSplatsDone += tileTotal;
+                encPer = encSecSum / Math.max(1, encSplatsDone);
+                step = { kind: 'none', units: 0 };
 
                 store.release();
                 memFs.files.clear();

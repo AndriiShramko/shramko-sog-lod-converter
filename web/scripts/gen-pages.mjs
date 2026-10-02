@@ -30,7 +30,7 @@ for (const lang of LANGS) {
     }
 
     const faq = [];
-    for (let i = 1; i <= 12; i++) faq.push({ '@type': 'Question', name: dict[`faq.q${i}`], acceptedAnswer: { '@type': 'Answer', text: dict[`faq.a${i}`] } });
+    for (let i = 1; i <= 13; i++) faq.push({ '@type': 'Question', name: dict[`faq.q${i}`], acceptedAnswer: { '@type': 'Answer', text: dict[`faq.a${i}`] } });
     const jsonld = [
         {
             '@context': 'https://schema.org',

@@ -6,6 +6,7 @@ import './styles.css';
 import { gaAvailable, loadGa, track } from './ui/api';
 import { initConverter } from './ui/converter';
 import { initFeedback } from './ui/feedback';
+import { initQueue } from './ui/queue';
 import { rememberLang, t } from './ui/i18n';
 
 const CONSENT_KEY = 'sog_consent';
@@ -62,6 +63,7 @@ const main = async () => {
     initLangSwitch();
     initCopyButtons();
     initConverter();
+    initQueue();
     initFeedback(() => Array.from(document.getElementById('p-log')?.textContent?.split('\n') ?? logBuffer));
     initConsent();
     const rel = await loadRelease();

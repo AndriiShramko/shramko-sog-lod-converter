@@ -15,6 +15,8 @@ description: Prepare a large 3D Gaussian Splatting PLY for SuperSplat — build 
 
 Interactive: open <https://sog.flyreelstudio.eu> (desktop Chrome/Edge), drop the PLY, **check the preview: the ground must be at the bottom** (scans differ per tool — turn it with Auto / Flip / ±90° / angles; it is per file, never assume one rotation), pick a scene preset, Convert, save `<name>-SSOG.zip`.
 
+Many files: on the page, *Add to queue* per file (own orientation + preset), *Start the queue*, choose a folder once — converted one by one, e.g. overnight. Headless batch in real Chrome: `node tools/queue.mjs list.json outDir` (list = `[{ply, rotate, preset, centre}]`).
+
 Headless: `npx tsx tools/node-convert.ts input.ply output.zip [--rotate x,y,z]` in a clone of <https://github.com/AndriiShramko/shramko-sog-lod-converter>.
 
 Default preset *All devices*: each level keeps 50% of the previous until ≤ 100,000 splats (VR headsets and phones run at 0.5–1M splats and always draw at least the coarsest level); adaptive simplification; chunks 256K / 16 m / min 16K. *SuperSplat standard* = SuperSplat's own policy: until ≤ 1,000,000 (`1 + ⌈log₂(N/1M)⌉` levels), chunks 512K / 16 m / 8K.

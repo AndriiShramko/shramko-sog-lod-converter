@@ -1,3 +1,4 @@
+[hidden] { display: none !important; }
 :root {
     --bg: #0b0d10;
     --bg2: #12161b;
@@ -246,3 +247,31 @@ ul.errors { color: var(--err); }
     html { scroll-behavior: auto; }
     .bar span { transition: none; }
 }
+
+/* queue */
+.fi-pending { margin: -2px 0 10px; }
+.queue { margin: 16px 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); }
+.q-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.q-head h4 { margin: 0; }
+.q-list { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.q-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.q-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; word-break: break-all; }
+.q-meta { word-break: normal; }
+.q-state { grid-column: 1; color: var(--muted); word-break: break-word; }
+.q-item.running { border-color: var(--accent); }
+.q-item.running .q-state { color: var(--accent); }
+.q-item.done .q-state { color: var(--ok); }
+.q-item.failed .q-state, .q-item.missing .q-state { color: var(--warn); }
+.q-item.editing { opacity: .7; border-style: dashed; }
+.q-acts { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end; }
+.q-acts .btn { min-height: 36px; }
+.q-x { font-size: 1.1rem; line-height: 1; }
+.q-folder { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.q-actions { margin-top: 6px; }
+.p-job { font-weight: 700; margin-bottom: 6px; word-break: break-all; }
+.banner.ok { background: rgba(89, 212, 138, .08); border: 1px solid rgba(89, 212, 138, .4); color: #c9f5da; }
+@media (max-width: 560px) {
+  .q-item { grid-template-columns: minmax(0, 1fr); }
+  .q-acts { grid-column: 1; grid-row: auto; justify-content: flex-start; }
+}
+

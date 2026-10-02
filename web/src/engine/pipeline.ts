@@ -232,8 +232,14 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
     const pool = createChunkDataPool({ maxPooledBytes: 512 * 1024 * 1024 });
     const commentLines = modelComments(header);
     const actions: Parameters<typeof processSource>[1] = [];
-    const [rx, ry, rz] = s.rotation ?? [0, 0, 0];
-    const [tx, ty, tz] = s.translation ?? [0, 0, 0];
+    const finite3 = (v: [number, number, number] | undefined, what: string): [number, number, number] => {
+        if (!v) return [0, 0, 0];
+        if (v.every(Number.isFinite)) return v;
+        emit({ type: 'log', level: 'warn', text: `Ignored an invalid ${what} (${v.join(', ')}): the scene is converted without it.` });
+        return [0, 0, 0];
+    };
+    const [rx, ry, rz] = finite3(s.rotation, 'rotation');
+    const [tx, ty, tz] = finite3(s.translation, 'translation');
     const hasRot = Math.abs(rx) + Math.abs(ry) + Math.abs(rz) > 1e-9;
     const hasMove = Math.abs(tx) + Math.abs(ty) + Math.abs(tz) > 1e-9;
     const rotated = hasRot || hasMove;

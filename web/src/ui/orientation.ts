@@ -145,6 +145,8 @@ export interface AutoOrient {
  * dense ground). Only a suggestion — the user confirms it in the preview.
  */
 export const autoOrient = (raw: Float32Array, n: number): AutoOrient => {
+    // too few points to say anything (e.g. a broken file): no turn, and say so
+    if (n < 100) return { euler: [0, 0, 0], confident: false, upAxis: '?' };
     // engine space = Rz(180)·raw: (-x, -y, z)
     const E = new Float32Array(n * 3);
     let mx = 0, my = 0, mz = 0;
@@ -214,6 +216,7 @@ const densityFalloffSign = (vals: Float32Array): number => {
 
 /** Translation that puts the scene's centre at the origin and its ground at y = 0 (after rotation). */
 export const centreTranslation = (raw: Float32Array, n: number, euler: Vec3T): Vec3T => {
+    if (n < 10) return [0, 0, 0];
     const m = viewMatrix(euler);
     const w = new Float32Array(3);
     const xs = new Float32Array(n), ys = new Float32Array(n), zs = new Float32Array(n);

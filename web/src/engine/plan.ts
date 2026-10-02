@@ -3,7 +3,7 @@
 
 import { keptPropertyNames, type PlyHeader } from './ply-header';
 
-export const CONVERTER_VERSION = '1.0.0';
+export const CONVERTER_VERSION = '1.2.0';
 
 export interface ConvertSettings {
     /** Fraction of splats each coarser level keeps (SuperSplat: 0.5). */

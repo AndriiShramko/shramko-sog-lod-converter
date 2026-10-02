@@ -9,6 +9,7 @@ Use this when a person asks their AI agent to "make my splat scan fit SuperSplat
 3. The default preset *All devices* builds levels down to ≤ 100K splats so the scene runs on desktops, phones and VR headsets; *SuperSplat standard* matches SuperSplat (≤ 1M). Change settings only for a reason the user gives (see README → Settings).
 4. When it finishes, the page shows "Checked: lod-meta.json at the root, N levels…". If it shows problems or an error, the page has already sent an anonymous report (if allowed); copy the details for the user.
 5. Upload the `.zip` at superspl.at → Upload.
+6. Several files: *Add to queue* for each (own orientation and preset), then *Start the queue* and pick an output folder once; they run one after another (overnight). Headless: `node tools/queue.mjs list.json outDir`.
 
 ## B. Verify an existing Streamed SOG zip
 

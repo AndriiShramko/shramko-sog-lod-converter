@@ -605,6 +605,7 @@ PROP_RULES: dict[str, set | re.Pattern] = {
     "method": re.compile(r"[a-z0-9][a-z0-9_-]{0,23}"),
     "reason": re.compile(r"[a-z0-9][a-z0-9_-]{0,23}"),
     "preset": {"all", "standard", "aerial", "street", "interior", "object", "light", "custom"},
+    "count": re.compile(r"[0-9]{1,3}"),
 }
 # event name -> its one optional property (None: a bare count)
 EVENTS: dict[str, str | None] = {
@@ -620,6 +621,9 @@ EVENTS: dict[str, str | None] = {
     "lang_switch": "lang",
     "gpu_unavailable": "reason",
     "preset": "preset",
+    "queue_add": "count",
+    "queue_start": "count",
+    "queue_done": "count",
 }
 MAX_PROP_VALUES = 32   # distinct values of one property per event and day; the rest count as "other"
 

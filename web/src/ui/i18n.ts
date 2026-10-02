@@ -16,7 +16,7 @@ export const t = (key: string, vars: Record<string, string | number> = {}): stri
     return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
 };
 
-const locale = { en: 'en-US', es: 'es-ES', pl: 'pl-PL', ru: 'ru-RU' }[lang];
+export const locale = { en: 'en-US', es: 'es-ES', pl: 'pl-PL', ru: 'ru-RU' }[lang];
 
 export const fmtInt = (n: number) => n.toLocaleString(locale);
 

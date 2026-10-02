@@ -2,6 +2,7 @@
 //
 //   node tools/e2e.mjs <input.ply> <out.zip> [--mem 12] [--tile 0] [--gpu 1] [--api http://127.0.0.1:8090] [--shots dir] [--profile dir]
 //                     [--preset all] [--rotate -90,0,0] [--centre 1]
+//                     [--real-browser] [--minimize]   (no anti-throttling flags; minimize the window while converting)
 //
 // Serves dist/ (with /api/* proxied to a local API server or stubbed), opens /en/, picks the file
 // through the page's own <input>, clicks Convert, follows the progress until the result or the
@@ -31,6 +32,8 @@ const preset = opt('--preset', '');
 const rotate = opt('--rotate', '');
 const centre = opt('--centre', '');
 const PORT = parseInt(opt('--port', '5181'), 10);
+const realBrowser = args.includes('--real-browser');
+const minimize = args.includes('--minimize');
 if (shots) mkdirSync(shots, { recursive: true });
 
 const say = (...a) => {
@@ -83,7 +86,7 @@ const ctx = await chromium.launchPersistentContext(profile, {
     headless: false,
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
-    args: ['--enable-unsafe-webgpu', '--disable-background-timer-throttling', '--disable-renderer-backgrounding']
+    args: ['--enable-unsafe-webgpu', ...(realBrowser ? [] : ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'])]
 });
 await ctx.addInitScript(() => {
     // automation cannot click native file dialogs: use the page's <input> to pick, OPFS to save
@@ -129,6 +132,17 @@ if (shots) await page.screenshot({ path: join(shots, '01-plan.png'), fullPage: f
 
 const t0 = Date.now();
 await page.click('#convert');
+let cdp = null;
+let windowId = null;
+if (minimize) {
+    // what an overnight user does: start, then minimize the browser (the page becomes hidden)
+    await page.waitForTimeout(3000);
+    cdp = await ctx.newCDPSession(page);
+    ({ windowId } = await cdp.send('Browser.getWindowForTarget'));
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } });
+    await page.waitForTimeout(1000);
+    say('minimized; page visibility:', await page.evaluate(() => document.visibilityState));
+}
 let lastLabel = '';
 let n = 0;
 for (;;) {
@@ -151,6 +165,10 @@ for (;;) {
     if (st.done || st.failed) break;
 }
 const elapsed = (Date.now() - t0) / 1000;
+if (cdp && windowId !== null) {
+    say('page visibility before restore:', await page.evaluate(() => document.visibilityState));
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } });
+}
 if (shots) await page.screenshot({ path: join(shots, '03-end.png'), fullPage: false }).catch(() => {});
 const resultText = await page.locator('#result').innerText().catch(() => '');
 const errorText = await page.locator('#error').innerText().catch(() => '');

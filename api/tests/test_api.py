@@ -471,6 +471,13 @@ class Events(Api):
         self.assertEqual(days[server.utc_day(time.time())]["counts"], {"convert_start": 1})
         self.assertEqual(self.call("GET", "/api/stats", ip=None)[0], 200)  # straight to the container
 
+    def test_queue_events(self):
+        for b in ({"e": "queue_add", "p": "3"}, {"e": "queue_start", "p": "12"}, {"e": "queue_done", "p": "4"}, {"e": "queue_done", "p": "x9"}):
+            self.assertEqual(self.ev(b), 204)
+        day = server.S.events.days[server.utc_day(time.time())]
+        self.assertEqual(day["counts"], {"queue_add": 1, "queue_start": 1, "queue_done": 2})
+        self.assertEqual(day["props"], {"queue_add": {"3": 1}, "queue_start": {"12": 1}, "queue_done": {"4": 1}})  # "x9" not a count: dropped
+
     def test_event_rate_limit(self):
         server.S.limits["event"] = server.RateLimiter(5, 3600)
         self.assertEqual([self.ev({"e": "page_view"}) for _ in range(6)], [204] * 5 + [429])

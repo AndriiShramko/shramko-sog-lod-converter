@@ -62,6 +62,11 @@
 
   <div id="compat" class="compat" hidden></div>
   <div id="crash" class="banner warn" role="alert" hidden></div>
+  <div id="other-tab" class="banner warn" role="status" hidden></div>
+  <div id="q-resume" class="banner warn" role="alert" hidden>
+    <p id="q-resume-text"></p>
+    <div class="p-row"><button id="q-resume-go" type="button" class="btn primary small">{{queue.resume}}</button><button id="q-resume-drop" type="button" class="btn ghost small">{{queue.discard}}</button></div>
+  </div>
 
   <!-- step 1: file -->
   <div id="step-file" class="card step">
@@ -71,10 +76,11 @@
       <p class="drop-title">{{app.dropTitle}}</p>
       <button id="pick" type="button" class="btn">{{app.choose}}</button>
       <p id="drop-hint" class="muted small">{{app.dropHint}}</p>
-      <input id="file-input" type="file" accept=".ply" hidden>
+      <input id="file-input" type="file" accept=".ply" multiple hidden>
     </div>
     <div id="file-info" class="file-info" hidden>
       <div class="file-row"><strong id="fi-name"></strong><button id="fi-change" type="button" class="btn ghost small">{{app.change}}</button></div>
+      <p id="fi-pending" class="muted small fi-pending" hidden></p>
       <dl class="facts" id="fi-facts"></dl>
       <div class="orient" id="orient">
         <h4>{{orient.title}}</h4>
@@ -190,10 +196,30 @@
     <label class="check consent"><input type="checkbox" id="auto-report" checked> {{app.autoReport}}</label>
     <div class="run-row">
       <button id="convert" type="button" class="btn primary big" disabled>{{app.convert}}</button>
+      <button id="enqueue" type="button" class="btn big" disabled>{{app.enqueue}}</button>
       <span id="convert-why" class="muted small" aria-live="polite"></span>
     </div>
 
+    <p id="q-msg" class="small o-msg ok" aria-live="polite"></p>
+
+    <div id="queue" class="queue" hidden>
+      <div class="q-head"><h4>{{queue.title}}</h4><span id="q-summary" class="muted small"></span></div>
+      <p class="muted small">{{queue.lead}}</p>
+      <ol id="q-list" class="q-list"></ol>
+      <p class="q-folder muted small"><span id="q-folder"></span> <button id="q-folder-change" type="button" class="btn ghost small" hidden>{{queue.changeFolder}}</button></p>
+      <div class="p-row q-actions">
+        <button id="q-start" type="button" class="btn primary">{{queue.start}}</button>
+        <button id="q-pause" type="button" class="btn ghost" hidden>{{queue.pause}}</button>
+        <button id="q-copy" type="button" class="btn ghost small">{{queue.copy}}</button>
+        <button id="q-clear" type="button" class="btn ghost small" hidden>{{queue.clearDone}}</button>
+      </div>
+      <p id="q-paused" class="small o-msg" hidden>{{queue.paused}}</p>
+      <div id="q-done" class="banner ok" role="status" hidden></div>
+      <p class="muted small">{{queue.awake}}</p>
+    </div>
+
     <div id="progress" class="progress" hidden aria-live="polite">
+      <div id="p-job" class="p-job" hidden></div>
       <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="p-fill"></span></div>
       <div class="p-row"><strong id="p-pct">0%</strong><span id="p-label" class="p-label"></span></div>
       <div class="p-row muted small"><span id="p-elapsed"></span><span id="p-eta"></span><span id="p-written"></span><span id="p-beat"></span></div>
@@ -269,6 +295,7 @@
     <details><summary>{{faq.q10}}</summary><p>{{faq.a10}}</p></details>
     <details><summary>{{faq.q11}}</summary><p>{{faq.a11}}</p></details>
     <details><summary>{{faq.q12}}</summary><p>{{faq.a12}}</p></details>
+    <details><summary>{{faq.q13}}</summary><p>{{faq.a13}}</p></details>
   </div>
 </section>
 

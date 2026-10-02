@@ -84,6 +84,10 @@ export const loadOrientation = async (file: File, header: PlyHeader) => {
 
 const runAuto = () => {
     if (!sample) return;
+    if (sample.count < 100) {
+        apply(euler, t('orient.fewPoints'));
+        return;
+    }
     const a = autoOrient(sample.raw, sample.count);
     apply(a.euler, a.confident ? t('orient.autoSure', { axis: a.upAxis }) : t('orient.autoUnsure', { axis: a.upAxis }), a.confident);
 };

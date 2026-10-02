@@ -10,7 +10,7 @@ authors:
 repository-code: "https://github.com/AndriiShramko/shramko-sog-lod-converter"
 url: "https://sog.flyreelstudio.eu"
 license: MIT
-version: 1.1.0
+version: 1.2.0
 date-released: 2026-10-02
 keywords:
   - gaussian splatting

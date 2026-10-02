@@ -8,6 +8,8 @@
 
 > **Status (2 Oct 2026):** live at <https://sog.flyreelstudio.eu>. Verified end to end in Chrome on a **259-million-splat / 17.6 GB** drone city scan: 10 levels of detail, 5.9 GB archive, 1 h 53 min on an RTX 4090 workstation, archive checked by three independent readers. See *Measured*.
 >
+> **New in 1.2:** a **queue** — add file after file (each with its own orientation and preset), choose an output folder once, and they are converted one by one, e.g. overnight; a failed file does not stop the queue, and a closed tab resumes with one click.
+>
 > **New in 1.1:** a **preview to set the scene's orientation** before converting (scans from different tools come out on their side or upside down — SuperSplat cannot rotate an uploaded streamed scene), and **levels down to ≤ 100K splats by default**, so city-scale scenes start light on **VR headsets and phones** (0.5–1M splat budgets).
 
 ## Why this exists
@@ -37,7 +39,7 @@ Your file never leaves your computer. The server only delivers the static page (
 2. Drop your `.ply`. The page reads the header instantly and shows the level plan, estimated time and archive size.
 3. Look at the **preview**: if the ground is not at the bottom, turn the scene (*Auto* suggests an axis, *Flip upside down*, ±90° turns, or exact angles). The choice is remembered per file.
 4. Pick a **scene preset** (default *All devices*) or open **Advanced settings**.
-5. Click **Convert**, choose where to save `<name>-SSOG.zip`, keep the tab open. Progress, ETA, the current step and a live log are shown; if something fails, the error and its step are shown and (if you allow) an anonymous report is sent so it can be fixed.
+5. Click **Convert**, choose where to save `<name>-SSOG.zip`, keep the tab open — or click **Add to queue** and go on with the next file (see *Queue*). Progress, ETA, the current step and a live log are shown; if something fails, the error and its step are shown and (if you allow) an anonymous report is sent so it can be fixed.
 6. Upload the `.zip` at superspl.at → Upload.
 
 ## Settings
@@ -84,6 +86,17 @@ Every level keeps 50% of the previous one in all presets. Why these values (meas
 - **Dropping SH** (view-dependent colour) saves ~37% of the archive and removes a colour re-render pass in the viewer; keep it for interiors and objects with reflections.
 - **Not changed:** keep-per-level 0.5 (0.6 was worse in every simulated view and +25% data; 0.4's visual quality is not measured yet).
 
+
+## Queue — many files, one after another (overnight)
+
+1. Pick a file, check its preview and preset, press **Add to queue**. Pick the next one, and so on — or select several files at once: they open one by one for checking. Files can be added while the queue runs.
+2. Press **Start the queue** and choose an output folder **once**. Each result is saved there as `<name>-SSOG.zip` without further dialogs; an existing file is never overwritten (`-2`, `-3` … are added).
+3. One file at a time, each in a fresh worker (memory is released between files). The list shows every file's state, the time left and the bytes still to write; **Copy the summary** gives a text report.
+4. **A failed file does not stop the queue.** Out of memory → one automatic retry with 60% of the RAM setting; GPU failure → one retry without the GPU; anything else → marked failed with its error report, and the queue goes on.
+5. **A closed or crashed tab** — the queue (settings, orientation, file and folder handles) is kept in the browser's IndexedDB. Reopen the page and press **Resume**: Chrome asks once for access to the files and the folder; a file picked through the plain file dialog is matched again by name and size when you pick it again. The file that was converting starts over.
+6. **Keep the computer awake.** The page holds a screen wake lock while it is visible; for overnight runs set the power plan so the PC does not sleep (a sleeping PC pauses the work).
+
+Verified (`tools/queue.mjs`): 4 files (two presets, two orientations, one broken file) with a page reload after the first — statuses `done, done, failed, done`, names `-SSOG.zip`, `-SSOG-2.zip`, `-SSOG-3.zip`, every archive passes `verify-zip`, and the queued result is identical to a single conversion of the same file (every entry's CRC equal; only the generator string differs).
 
 ## Orientation
 
@@ -135,6 +148,9 @@ SuperSplat halves the count per level until a level holds ≤ 1M splats: `1 + �
 **Can a 250-million-splat Gaussian splat city run on a Quest / VR headset?**
 Yes, if the levels go deep enough: the viewer always draws at least the coarsest level, and headsets run at 0.5–1M splats. With the default *All devices* preset the coarsest level is ≤ 100K, so the headset starts light and refines only near you.
 
+**Can I batch-convert several Gaussian splat PLY files overnight?**
+Yes: add them to the queue one by one (each with its own orientation and preset), press *Start the queue*, choose a folder once — they are converted one after another, a failure does not stop the rest, and a closed tab resumes with one click.
+
 **My Gaussian splat scene is sideways or upside down on SuperSplat. How do I rotate it?**
 Drop the PLY here, turn it on the preview until the ground is at the bottom, convert. The rotation is baked into the Streamed SOG, so SuperSplat shows it upright (its editor cannot rotate an uploaded streamed scene).
 
@@ -149,11 +165,13 @@ Yes — the scene is processed in spatial tiles, so memory stays bounded. It tak
 
 **Works (verified):** binary PLY (little/big-endian, SH 0–3) → multi-LOD Streamed SOG `.zip`; spatial tiling beyond one tab's memory; ZIP64 archives > 4 GB (read back by our verifier and by Python `zipfile` with CRC check); WebGPU acceleration in Chrome; read-back verification; live progress with ETA; visible errors and anonymous error reports; feedback (bug / idea / cooperation); 4 languages (EN, ES, PL, RU).
 
+**Also works (1.2):** queue of many files into one folder, auto-retries, resume after a closed tab.
+
 **Also works (1.1):** orientation preview and per-file rotation baked into the archive; levels down to ≤ 100K (≤ 50K *Light*) for VR headsets and phones; 7 scene presets.
 
 **In progress:** re-converting the 259M-splat test scan upright with 13 levels for VR and publishing it on superspl.at.
 
-**Next:** resume after a crash or closed tab · optional direct upload to SuperSplat with your API token · separate sky/environment layer · compressed PLY and SPZ input · processing several tiles in parallel on many-core CPUs.
+**Next:** resume a single file mid-way after a crash (the queue restarts that file today) · optional direct upload to SuperSplat with your API token · separate sky/environment layer · compressed PLY and SPZ input · processing several tiles in parallel on many-core CPUs.
 
 ## Limits and risks
 

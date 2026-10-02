@@ -94,7 +94,7 @@ Every level keeps 50% of the previous one in all presets. Why these values (meas
 3. One file at a time, each in a fresh worker (memory is released between files). The list shows every file's state, the time left and the bytes still to write; **Copy the summary** gives a text report.
 4. **A failed file does not stop the queue.** Out of memory → one automatic retry with 60% of the RAM setting; GPU failure → one retry without the GPU; anything else → marked failed with its error report, and the queue goes on.
 5. **A closed or crashed tab** — the queue (settings, orientation, file and folder handles) is kept in the browser's IndexedDB. Reopen the page and press **Resume**: Chrome asks once for access to the files and the folder; a file picked through the plain file dialog is matched again by name and size when you pick it again. The file that was converting starts over.
-6. **Keep the computer awake.** The page holds a screen wake lock while it is visible; for overnight runs set the power plan so the PC does not sleep (a sleeping PC pauses the work).
+6. **Keep the computer awake — and the window visible for full speed.** The page holds a screen wake lock while it is visible; for overnight runs set the power plan so the PC does not sleep (a sleeping PC pauses the work). A hidden page (minimized window or a background tab) keeps converting but Chrome lowers its priority: measured 90 s instead of 65 s for the same 2M-splat file (≈ 1.4× slower, `tools/bg-test.mjs`, plain Chrome without test switches).
 
 Verified (`tools/queue.mjs`): 4 files (two presets, two orientations, one broken file) with a page reload after the first — statuses `done, done, failed, done`, names `-SSOG.zip`, `-SSOG-2.zip`, `-SSOG-3.zip`, every archive passes `verify-zip`, and the queued result is identical to a single conversion of the same file (every entry's CRC equal; only the generator string differs).
 
@@ -111,6 +111,7 @@ Scans come out of different tools in different orientations (Z up, Y down, …) 
 
 | Input | Where | Levels | Time | Archive | Check |
 |---|---|---|---|---|---|
+| **258,951,032 splats (17.6 GB, SH0), same scan, v1.1: turned −90° X + centred** | Chrome 154, RTX 4090, i9-7980XE, *RAM to use* 12 GB, preset *City from a drone* (adaptive) | **13** (259M → 63K) | **2 h 51 min** (16 tiles, 4 passes; other test runs shared the GPU for part of it) | **6.03 GB** (1,853 chunks, 11,119 files, ZIP64) | page read-back ✓, `verify-zip.ts` ✓, Python `zipfile` CRC ✓, `splat-transform --info` → `lods: 13` ✓, decoded LOD 8 rendered from above shows roofs, from the side stands upright |
 | **258,951,032 splats (17.6 GB, SH0), drone city scan ~1.1 × 0.9 km** | Chrome 154, RTX 4090, i9-7980XE, *RAM to use* 12 GB, preset *SuperSplat standard* | **10** (259M → 506K) | **1 h 53 min** (16 tiles, 4 reading passes) | **5.89 GB** (977 chunks, 5,863 files, ZIP64) | page read-back ✓, `tools/verify-zip.ts` ✓, Python `zipfile` CRC of every entry ✓, `splat-transform --info` → `lods: 10` ✓ |
 | 20,000,000 splats (1.27 GB, SH0) | Chrome 154, RTX 4090, i9-7980XE, 12 GB RAM setting | 6 (20M → 625K) | 8 min 23 s | 465 MB | read-back ✓, `splat-transform --info` ✓ |
 | 2,000,000 splats (130 MB, SH0), turned −90° X + centred | same, preset *All devices* (adaptive) | 6 (2M → 62.5K) | 1 min 04 s | 47.8 MB | read-back ✓, `verify-zip.ts` ✓, upright top-down render ✓ |
@@ -169,7 +170,7 @@ Yes — the scene is processed in spatial tiles, so memory stays bounded. It tak
 
 **Also works (1.1):** orientation preview and per-file rotation baked into the archive; levels down to ≤ 100K (≤ 50K *Light*) for VR headsets and phones; 7 scene presets.
 
-**In progress:** re-converting the 259M-splat test scan upright with 13 levels for VR and publishing it on superspl.at.
+**In progress:** publishing the upright 13-level conversion of the 259M-splat test scan on superspl.at (the archive is built and verified).
 
 **Next:** resume a single file mid-way after a crash (the queue restarts that file today) · optional direct upload to SuperSplat with your API token · separate sky/environment layer · compressed PLY and SPZ input · processing several tiles in parallel on many-core CPUs.
 

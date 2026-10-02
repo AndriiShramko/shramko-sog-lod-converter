@@ -86,7 +86,9 @@ const ctx = await chromium.launchPersistentContext(profile, {
     headless: false,
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
-    args: ['--enable-unsafe-webgpu', ...(realBrowser ? [] : ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'])]
+    args: ['--enable-unsafe-webgpu', ...(realBrowser ? [] : ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'])],
+    // Playwright adds anti-throttling switches by default; a real user's Chrome has none
+    ...(realBrowser ? { ignoreDefaultArgs: ['--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding'] } : {})
 });
 await ctx.addInitScript(() => {
     // automation cannot click native file dialogs: use the page's <input> to pick, OPFS to save

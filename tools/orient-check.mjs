@@ -1,15 +1,16 @@
 // Visual check of the preview & orientation panel in real Chrome.
-//   node tools/orient-check.mjs <distDir> <file.ply> <outDir>
+//   node tools/orient-check.mjs <distDir | https://site> <file.ply> <outDir>
 import http from 'node:http';
 import { createReadStream, existsSync, mkdirSync, statSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
 const [distArg, ply, out] = process.argv.slice(2);
-const dist = resolve(distArg);
+const live = /^https?:/.test(distArg);
+const dist = live ? '' : resolve(distArg);
 mkdirSync(out, { recursive: true });
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
-const server = http.createServer((req, res) => {
+const server = live ? null : http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
     if (url.pathname.startsWith('/api/')) { res.writeHead(204); return res.end(); }
     let p = join(dist, decodeURIComponent(url.pathname));
@@ -26,7 +27,7 @@ const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-await page.goto('http://localhost:5191/en/');
+await page.goto(live ? `${distArg.replace(/\/$/, '')}/en/` : 'http://localhost:5191/en/');
 const t0 = Date.now();
 await page.setInputFiles('#file-input', ply);
 await page.waitForFunction(() => /Preview:/.test(document.getElementById('pv-status')?.textContent ?? ''), null, { timeout: 120000 });
@@ -50,4 +51,4 @@ console.log('floor fact:', (await page.locator('#fi-facts').innerText()).split('
 console.log('levels:', (await page.locator('#fi-levels').innerText()).split('\n').length - 1, 'rows');
 console.log(errors.length ? `ERRORS: ${errors.join(' | ')}` : 'no page errors');
 await browser.close();
-server.close();
+server?.close();

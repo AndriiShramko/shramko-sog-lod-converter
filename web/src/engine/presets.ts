@@ -1,7 +1,7 @@
 // Scene presets. Each one sets only what the FILE controls; budgets, LOD distances and
 // penalties live in the viewer (PlayCanvas engine / SuperSplat) and cannot be set here.
 //
-// Evidence (2026-10-02, playcanvas 2.22.6 + splat-transform 3.8.0, measured on the Lublin scan
+// Evidence (2026-10-02, playcanvas 2.22.6 + splat-transform 3.8.0, measured on a 259M-splat city scan
 // and simulated with the engine's own LOD classes on public superspl.at manifests):
 // - The coarsest level is a FLOOR: the viewer never draws fewer splats than its total, and
 //   SuperSplat downloads all of it before the first frame. Phones / VR headsets get a 1M budget,

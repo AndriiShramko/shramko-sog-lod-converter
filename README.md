@@ -6,7 +6,7 @@
 
 ![Shramko SOG LOD Converter — the converter page](docs/assets/screenshot-converter.png)
 
-> **Status (2 Oct 2026):** live at <https://sog.flyreelstudio.eu>, verified end to end in Chrome (2M and 20M-splat samples, preset runs, error reports, feedback). The full 259M-splat / 17.6 GB run and its upload to superspl.at are being finished today — see *Measured*.
+> **Status (2 Oct 2026):** live at <https://sog.flyreelstudio.eu>. Verified end to end in Chrome on a **259-million-splat / 17.6 GB** drone city scan: 10 levels of detail, 5.9 GB archive, 1 h 53 min on an RTX 4090 workstation, archive checked by three independent readers. See *Measured*.
 
 ## Why this exists
 
@@ -68,13 +68,13 @@ Pick the kind of scene instead of guessing settings. A preset sets only what the
 
 ![Scene presets on the page (Polish version)](docs/assets/screenshot-presets-pl.png)
 
-Every level keeps 50% of the previous one in all presets. Why these values (measured 2026-10-02 with the PlayCanvas engine 2.22.6 LOD classes on public superspl.at manifests and on the 259M-splat Lublin scan):
+Every level keeps 50% of the previous one in all presets. Why these values (measured 2026-10-02 with the PlayCanvas engine 2.22.6 LOD classes on public superspl.at manifests and on a 259M-splat drone city scan):
 
 - **The coarsest level is a floor.** The viewer starts every node at its coarsest level and never draws fewer splats than that level's total; SuperSplat downloads all of it before the first frame. With SuperSplat's default (stop at ≤ 1M), the floor is 0.5–1.0M — 50–100% of a phone's or headset's budget, so they can barely refine. Stopping at 250K gives them room and a ~4× lighter first frame (e.g. 9.5 → 2.4 MB without SH). The page shows the floor for your file as a percentage of a 1M budget.
 - **Chunk size = download granularity.** A unit file is downloaded whole; at 512K splats per unit the viewer keeps ~8× more splats resident than it draws. 128K units cut resident data by ~58–61%, at 4× more files.
 - **Aerial scans: fewer, larger nodes.** In dense drone scans node count is set by `chunkMin`/`chunkExtent`; 32 m / 32K gives 4× fewer nodes (manifest 31 → 7.9 MB, LOD pass ~5× cheaper) with identical views, flying down to street level included.
 - **Eye level: 16 m nodes.** 8 m gave no visible gain at 3× the nodes; 32 m made the near field coarser.
-- **Adaptive simplification is better on real scans:** level 2 (25% of the splats) rendered against the source from the same camera — **34.4 dB PSNR adaptive vs 28.0 dB uniform** on the Lublin sample. It needs about twice the working memory (more, smaller tiles).
+- **Adaptive simplification is better on real scans:** level 2 (25% of the splats) rendered against the source from the same camera — **34.4 dB PSNR adaptive vs 28.0 dB uniform** on a 2M-splat sample of that scan. It needs about twice the working memory (more, smaller tiles).
 - **Dropping SH** (view-dependent colour) saves ~37% of the archive and removes a colour re-render pass in the viewer; keep it for interiors and objects with reflections.
 - **Not changed:** keep-per-level 0.5 (0.6 was worse in every simulated view and +25% data; 0.4's visual quality is not measured yet).
 
@@ -83,8 +83,11 @@ Every level keeps 50% of the previous one in all presets. Why these values (meas
 
 | Input | Where | Levels | Time | Archive | Check |
 |---|---|---|---|---|---|
+| **258,951,032 splats (17.6 GB, SH0), drone city scan ~1.1 × 0.9 km** | Chrome 154, RTX 4090, i9-7980XE, *RAM to use* 12 GB, preset *SuperSplat standard* | **10** (259M → 506K) | **1 h 53 min** (16 tiles, 4 reading passes) | **5.89 GB** (977 chunks, 5,863 files, ZIP64) | page read-back ✓, `tools/verify-zip.ts` ✓, Python `zipfile` CRC of every entry ✓, `splat-transform --info` → `lods: 10` ✓ |
 | 20,000,000 splats (1.27 GB, SH0) | Chrome 154, RTX 4090, i9-7980XE, 12 GB RAM setting | 6 (20M → 625K) | 8 min 23 s | 465 MB | read-back ✓, `splat-transform --info` ✓ |
 | 2,000,000 splats (130 MB, SH0) | same | 2 | 37 s | 36 MB | read-back ✓ |
+
+Per-level counts of the 259M run: 258,951,032 / 129,475,520 / 64,737,762 / 32,368,885 / 16,184,446 / 8,092,227 / 4,046,119 / 2,023,064 / 1,011,536 / 505,772 — 12.2 bytes per splat over all levels; `lod-meta.json` 6.35 MB with 9,976 leaves. The time estimate shown before the run was 2 h 06 min.
 
 Round-trip quality on the 2M sample: rendering LOD 0 decoded from the archive vs the source PLY from the same camera — **PSNR 49.9 dB** (negative control: the same render shifted by 40 px — 16.7 dB).
 
@@ -113,7 +116,7 @@ It was built from one PLY without decimated levels: `splat-transform scene.ply l
 SuperSplat halves the count per level until a level holds ≤ 1M splats: `1 + ⌈log₂(N / 1M)⌉`. 100M splats → 8 levels; 259M → 10.
 
 **Can I convert a 250-million-splat city scan in a browser?**
-Yes — the scene is processed in spatial tiles, so memory stays bounded. It takes hours, not minutes; see *Measured*.
+Yes — the scene is processed in spatial tiles, so memory stays bounded. It takes hours, not minutes: 259M splats took 1 h 53 min on an RTX 4090 workstation (see *Measured*).
 
 **Is my scan uploaded anywhere?** No. Only optional feedback and anonymous error reports (no file, no file name) reach the server.
 
@@ -123,7 +126,7 @@ Yes — the scene is processed in spatial tiles, so memory stays bounded. It tak
 
 **Works (verified):** binary PLY (little/big-endian, SH 0–3) → multi-LOD Streamed SOG `.zip`; spatial tiling beyond one tab's memory; ZIP64 archives > 4 GB (read back by our verifier and by Python `zipfile` with CRC check); WebGPU acceleration in Chrome; read-back verification; live progress with ETA; visible errors and anonymous error reports; feedback (bug / idea / cooperation); 4 languages (EN, ES, PL, RU).
 
-**In progress:** the full 259M-splat / 17.6 GB city scan conversion and its upload to superspl.at (2 Oct 2026).
+**In progress:** uploading the 259M-splat test archive to superspl.at and checking how SuperSplat processes it.
 
 **Next:** resume after a crash or closed tab · optional direct upload to SuperSplat with your API token · separate sky/environment layer · compressed PLY and SPZ input · processing several tiles in parallel on many-core CPUs.
 

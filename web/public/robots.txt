@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# AI answer engines are welcome
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://sog.flyreelstudio.eu/sitemap.xml

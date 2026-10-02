@@ -1,0 +1,80 @@
+# PLY to Shramko SOG LOD Converter on the hub, in its own directory ($SOG_BASE in deploy/hub.env).
+# Two containers, no host ports:
+#   sog-web  nginx:alpine serves the static release (releases/current) behind nginx-proxy + acme
+#   sog-api  a tiny stdlib python API (feedback, reports, counters, health), internal network only
+# The web-proxy network is external: never created, changed or removed from here. Neighbours are
+# never touched. First certificate: add compose.staging.yml (Let's Encrypt staging), see README.
+name: sog
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  sog-web:
+    image: nginx:1.29-alpine
+    container_name: sog-web
+    restart: unless-stopped
+    volumes:
+      - ./releases:/srv/releases:ro
+      # single-file bind mount: write changes IN PLACE (deploy.sh --sync-config does), a file
+      # replaced by a new inode is only seen after `docker restart sog-web`
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      VIRTUAL_HOST: sog.flyreelstudio.eu
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: sog.flyreelstudio.eu
+      LETSENCRYPT_EMAIL: zmei116@gmail.com
+    networks: [web-proxy, sog-internal]
+    mem_limit: 96m
+    memswap_limit: 96m
+    cpus: 0.5
+    pids_limit: 64
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  sog-api:
+    image: python:3.12-alpine
+    container_name: sog-api
+    restart: unless-stopped
+    command: ["python", "-u", "/app/server.py"]
+    read_only: true
+    tmpfs: ["/tmp:size=8m"]
+    volumes:
+      - ./api:/app:ro
+      - ./data:/data
+    # TG_BOT_TOKEN, TG_CHAT_ID: secrets, only on the hub (never in git); see README "First deploy"
+    env_file: [config.env]
+    environment:
+      DATA_DIR: /data
+      SITE_TAG: sog
+      PORT: "8090"
+      PYTHONDONTWRITEBYTECODE: "1"
+    networks: [sog-internal]
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+    pids_limit: 32
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/api/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 10s
+
+networks:
+  web-proxy:
+    external: true
+  sog-internal:
+    name: sog-internal
+    driver: bridge

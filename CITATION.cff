@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Shramko SOG LOD Converter: giant Gaussian-splat PLY to Streamed SOG with levels of detail, in the browser"
+abstract: "Browser-based, out-of-core converter that turns 3D Gaussian Splatting PLY files of hundreds of millions of splats into a multi-LOD Streamed SOG archive (lod-meta.json + SOG chunks) for SuperSplat and the PlayCanvas engine, using spatial tiling, WebGPU decimation and a streaming ZIP64 writer."
+authors:
+  - family-names: Shramko
+    given-names: Andrii
+    email: zmei116@gmail.com
+    website: "https://www.linkedin.com/in/andrii-shramko/"
+repository-code: "https://github.com/AndriiShramko/shramko-sog-lod-converter"
+url: "https://sog.flyreelstudio.eu"
+license: MIT
+version: 1.0.0
+date-released: 2026-10-02
+keywords:
+  - gaussian splatting
+  - 3dgs
+  - streamed sog
+  - level of detail
+  - supersplat
+  - playcanvas
+  - webgpu
+  - point cloud

@@ -1,0 +1,52 @@
+{
+  "name": "shramko-sog-lod-converter",
+  "version": "1.0.0",
+  "description": "Convert giant 3D Gaussian Splatting PLY files into a SuperSplat-ready Streamed SOG (.zip) with real LODs, in the browser on your own GPU/CPU.",
+  "scripts": {
+    "pages": "node web/scripts/gen-pages.mjs",
+    "dev": "node web/scripts/gen-pages.mjs && vite",
+    "build": "node web/scripts/gen-pages.mjs && tsc -p . && vite build && node web/scripts/post-build.mjs",
+    "typecheck": "tsc -p .",
+    "test": "tsx tools/node-convert.ts",
+    "test:zip64": "tsx tools/test-zip64.ts",
+    "verify": "tsx tools/verify-zip.ts"
+  },
+  "keywords": [
+    "gaussian-splatting",
+    "3dgs",
+    "ply",
+    "sog",
+    "streamed-sog",
+    "lod",
+    "supersplat",
+    "playcanvas",
+    "splat-transform",
+    "webgpu",
+    "point-cloud",
+    "converter"
+  ],
+  "author": "Andrii Shramko <zmei116@gmail.com> (https://github.com/AndriiShramko)",
+  "license": "MIT",
+  "dependencies": {
+    "@playcanvas/splat-transform": "3.8.0",
+    "playcanvas": "2.22.6"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "@webgpu/types": "0.1.74",
+    "playwright": "1.63.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "6.4.3"
+  },
+  "private": true,
+  "type": "module",
+  "homepage": "https://sog.flyreelstudio.eu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AndriiShramko/shramko-sog-lod-converter.git"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

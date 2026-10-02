@@ -1,0 +1,7 @@
+# the hub runs these with bash/nginx/python on Linux: LF, whatever the checkout platform
+*.sh text eol=lf
+*.py text eol=lf
+*.conf text eol=lf
+*.yml text eol=lf
+*.env.example text eol=lf
+*.md text eol=lf

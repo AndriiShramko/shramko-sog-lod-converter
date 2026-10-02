@@ -1,0 +1,14 @@
+Shramko SOG LOD Converter
+Copyright (c) 2026 Andrii Shramko — https://github.com/AndriiShramko — MIT License (see LICENSE).
+
+The browser build bundles third-party software:
+
+- @playcanvas/splat-transform 3.8.0 — Copyright (c) 2011-2026 PlayCanvas Ltd. — MIT License
+  https://github.com/playcanvas/splat-transform
+  (includes a WebAssembly build of libwebp — Copyright (c) 2010 Google Inc. — BSD 3-Clause License)
+- playcanvas (engine) 2.22.6 — Copyright (c) 2011-2026 PlayCanvas Ltd. — MIT License
+  https://github.com/playcanvas/engine
+- @adobe/spz (dependency of splat-transform) — Copyright Adobe — MIT License
+
+SuperSplat and PlayCanvas are trademarks of their respective owners. This project is independent
+and not affiliated with or endorsed by PlayCanvas Ltd. or Snap Inc.

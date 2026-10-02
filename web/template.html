@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="{{lang}}" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{meta.title}}</title>
+<meta name="description" content="{{meta.description}}">
+<link rel="canonical" href="https://sog.flyreelstudio.eu/{{lang}}/">
+<link rel="alternate" hreflang="en" href="https://sog.flyreelstudio.eu/en/">
+<link rel="alternate" hreflang="es" href="https://sog.flyreelstudio.eu/es/">
+<link rel="alternate" hreflang="pl" href="https://sog.flyreelstudio.eu/pl/">
+<link rel="alternate" hreflang="ru" href="https://sog.flyreelstudio.eu/ru/">
+<link rel="alternate" hreflang="x-default" href="https://sog.flyreelstudio.eu/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Shramko SOG LOD Converter">
+<meta property="og:title" content="{{meta.ogTitle}}">
+<meta property="og:description" content="{{meta.description}}">
+<meta property="og:url" content="https://sog.flyreelstudio.eu/{{lang}}/">
+<meta property="og:image" content="https://sog.flyreelstudio.eu/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="{{meta.ogLocale}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script type="application/ld+json">{{jsonld}}</script>
+</head>
+<body>
+<a class="skip" href="#app">{{nav.skip}}</a>
+<header class="top">
+  <a class="brand" href="/{{lang}}/" aria-label="Shramko SOG LOD Converter">
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><circle cx="16" cy="16" r="2.5" fill="currentColor"/></svg>
+    <span>Shramko&nbsp;SOG&nbsp;LOD&nbsp;Converter</span>
+  </a>
+  <nav class="nav" aria-label="{{nav.label}}">
+    <a href="#how">{{nav.how}}</a>
+    <a href="#faq">{{nav.faq}}</a>
+    <a href="#contact">{{nav.contact}}</a>
+    <a href="https://github.com/AndriiShramko/shramko-sog-lod-converter" rel="noopener" target="_blank">GitHub</a>
+  </nav>
+  <div class="langs" role="group" aria-label="{{nav.language}}">
+    <a href="/en/" hreflang="en" data-lang="en" lang="en">EN</a><a href="/es/" hreflang="es" data-lang="es" lang="es">ES</a><a href="/pl/" hreflang="pl" data-lang="pl" lang="pl">PL</a><a href="/ru/" hreflang="ru" data-lang="ru" lang="ru">RU</a>
+  </div>
+  <div id="topbar" class="topbar" hidden aria-hidden="true"><span id="topbar-fill"></span></div>
+</header>
+
+<main>
+<section class="hero">
+  <h1>{{hero.title}}</h1>
+  <p class="lead">{{hero.lead}}</p>
+  <a class="byline" href="#contact">
+    <picture><source type="image/webp" srcset="/img/andrii-shramko-160.webp"><img src="/img/andrii-shramko-160.jpg" alt="Andrii Shramko" width="40" height="40" decoding="async"></picture>
+    <span>{{hero.by}}</span>
+  </a>
+  <ul class="chips" aria-label="{{hero.chipsLabel}}">
+    <li>{{hero.chip1}}</li><li>{{hero.chip2}}</li><li>{{hero.chip3}}</li><li>{{hero.chip4}}</li><li>{{hero.chip5}}</li>
+  </ul>
+</section>
+
+<section id="app" class="app" aria-labelledby="app-title">
+  <h2 id="app-title" class="sr-only">{{app.title}}</h2>
+
+  <div id="compat" class="compat" hidden></div>
+  <div id="crash" class="banner warn" role="alert" hidden></div>
+
+  <!-- step 1: file -->
+  <div id="step-file" class="card step">
+    <div class="step-head"><span class="num">1</span><h3>{{app.step1}}</h3></div>
+    <div id="drop" class="drop" tabindex="0" role="button" aria-describedby="drop-hint">
+      <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="drop-title">{{app.dropTitle}}</p>
+      <button id="pick" type="button" class="btn">{{app.choose}}</button>
+      <p id="drop-hint" class="muted small">{{app.dropHint}}</p>
+      <input id="file-input" type="file" accept=".ply" hidden>
+    </div>
+    <div id="file-info" class="file-info" hidden>
+      <div class="file-row"><strong id="fi-name"></strong><button id="fi-change" type="button" class="btn ghost small">{{app.change}}</button></div>
+      <dl class="facts" id="fi-facts"></dl>
+      <div class="plan">
+        <h4>{{app.planTitle}}</h4>
+        <table class="levels"><thead><tr><th>{{app.level}}</th><th>{{app.splats}}</th><th>{{app.share}}</th></tr></thead><tbody id="fi-levels"></tbody></table>
+        <p class="muted small" id="fi-plan-note"></p>
+      </div>
+      <div id="fi-warn" class="banner warn" hidden></div>
+    </div>
+  </div>
+
+  <!-- step 2: settings -->
+  <div id="step-settings" class="card step">
+    <div class="step-head"><span class="num">2</span><h3>{{app.step2}}</h3></div>
+    <p class="muted">{{app.presetNote}}</p>
+    <details id="advanced" class="advanced">
+      <summary>{{set.advanced}}</summary>
+      <div class="set-grid">
+        <fieldset>
+          <legend>{{set.lodLegend}}</legend>
+          <label>{{set.ratio}} <input type="number" id="s-ratio" min="0.1" max="0.9" step="0.05" inputmode="decimal"></label>
+          <p class="help">{{set.ratioHelp}}</p>
+          <label>{{set.minCoarsest}} <input type="number" id="s-min" min="1000" step="100000" inputmode="numeric"></label>
+          <p class="help">{{set.minCoarsestHelp}}</p>
+          <label>{{set.maxLevels}} <input type="number" id="s-maxlevels" min="0" max="16" step="1" inputmode="numeric"></label>
+          <p class="help">{{set.maxLevelsHelp}}</p>
+          <label>{{set.decimator}}
+            <select id="s-decimator"><option value="uniform">{{set.uniform}}</option><option value="adaptive">{{set.adaptive}}</option></select>
+          </label>
+          <p class="help">{{set.decimatorHelp}}</p>
+        </fieldset>
+        <fieldset>
+          <legend>{{set.qualityLegend}}</legend>
+          <label>{{set.sh}}
+            <select id="s-sh"><option value="-1">{{set.shKeep}}</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+          </label>
+          <p class="help">{{set.shHelp}}</p>
+          <label>{{set.iterations}} <input type="number" id="s-iter" min="1" max="100" step="1" inputmode="numeric"></label>
+          <p class="help">{{set.iterationsHelp}}</p>
+          <label>{{set.webp}}
+            <select id="s-webp"><option value="">{{set.webpDefault}}</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select>
+          </label>
+          <p class="help">{{set.webpHelp}}</p>
+          <label class="check"><input type="checkbox" id="s-nan"> {{set.nan}}</label>
+          <p class="help">{{set.nanHelp}}</p>
+        </fieldset>
+        <fieldset>
+          <legend>{{set.chunkLegend}}</legend>
+          <label>{{set.chunkCount}} <input type="number" id="s-ccount" min="16" max="4096" step="16" inputmode="numeric"></label>
+          <label>{{set.chunkExtent}} <input type="number" id="s-cextent" min="1" max="1000" step="1" inputmode="numeric"></label>
+          <label>{{set.chunkMin}} <input type="number" id="s-cmin" min="1" max="512" step="1" inputmode="numeric"></label>
+          <p class="help">{{set.chunkHelp}}</p>
+        </fieldset>
+        <fieldset>
+          <legend>{{set.perfLegend}}</legend>
+          <label>{{set.memory}} <input type="number" id="s-mem" min="2" max="15" step="1" inputmode="numeric"></label>
+          <p class="help">{{set.memoryHelp}}</p>
+          <label>{{set.tile}} <input type="number" id="s-tile" min="0" max="60000000" step="1000000" inputmode="numeric"></label>
+          <p class="help">{{set.tileHelp}}</p>
+          <label class="check"><input type="checkbox" id="s-gpu"> {{set.gpu}}</label>
+          <p class="help">{{set.gpuHelp}}</p>
+          <label>{{set.workers}} <input type="number" id="s-workers" min="0" max="16" step="1" inputmode="numeric"></label>
+          <p class="help">{{set.workersHelp}}</p>
+        </fieldset>
+      </div>
+      <button id="s-reset" type="button" class="btn ghost small">{{set.reset}}</button>
+    </details>
+  </div>
+
+  <!-- step 3: convert -->
+  <div id="step-run" class="card step">
+    <div class="step-head"><span class="num">3</span><h3>{{app.step3}}</h3></div>
+    <p class="muted small">{{app.saveNote}}</p>
+    <label class="check consent"><input type="checkbox" id="auto-report" checked> {{app.autoReport}}</label>
+    <div class="run-row">
+      <button id="convert" type="button" class="btn primary big" disabled>{{app.convert}}</button>
+      <span id="convert-why" class="muted small" aria-live="polite"></span>
+    </div>
+
+    <div id="progress" class="progress" hidden aria-live="polite">
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="p-fill"></span></div>
+      <div class="p-row"><strong id="p-pct">0%</strong><span id="p-label" class="p-label"></span></div>
+      <div class="p-row muted small"><span id="p-elapsed"></span><span id="p-eta"></span><span id="p-written"></span><span id="p-beat"></span></div>
+      <ol class="stages" id="p-stages"></ol>
+      <div class="p-row"><button id="cancel" type="button" class="btn ghost">{{app.cancel}}</button><span class="muted small">{{app.keepOpen}}</span></div>
+      <details class="log"><summary>{{app.log}}</summary><pre id="p-log"></pre><button id="copy-log" type="button" class="btn ghost small">{{app.copyLog}}</button></details>
+    </div>
+
+    <div id="result" class="result" hidden></div>
+    <div id="error" class="error-box" role="alert" hidden></div>
+  </div>
+</section>
+
+<section id="how" class="section">
+  <h2>{{how.title}}</h2>
+  <ol class="how">
+    <li><h3>{{how.s1t}}</h3><p>{{how.s1}}</p></li>
+    <li><h3>{{how.s2t}}</h3><p>{{how.s2}}</p></li>
+    <li><h3>{{how.s3t}}</h3><p>{{how.s3}}</p></li>
+    <li><h3>{{how.s4t}}</h3><p>{{how.s4}}</p></li>
+  </ol>
+</section>
+
+<section id="why" class="section">
+  <h2>{{why.title}}</h2>
+  <p>{{why.p1}}</p>
+  <p>{{why.p2}}</p>
+</section>
+
+<section id="compare" class="section">
+  <h2>{{cmp.title}}</h2>
+  <p class="muted small">{{cmp.asof}}</p>
+  <div class="table-wrap">
+  <table class="cmp">
+    <thead><tr><th></th><th>{{cmp.thisTool}}</th><th>{{cmp.ssUpload}}</th><th>{{cmp.ssConvert}}</th><th>{{cmp.cli}}</th></tr></thead>
+    <tbody>
+      <tr><th>{{cmp.rowSize}}</th><td>{{cmp.tSize}}</td><td>{{cmp.uSize}}</td><td>{{cmp.cSize}}</td><td>{{cmp.lSize}}</td></tr>
+      <tr><th>{{cmp.rowLod}}</th><td>{{cmp.tLod}}</td><td>{{cmp.uLod}}</td><td>{{cmp.cLod}}</td><td>{{cmp.lLod}}</td></tr>
+      <tr><th>{{cmp.rowWhere}}</th><td>{{cmp.tWhere}}</td><td>{{cmp.uWhere}}</td><td>{{cmp.cWhere}}</td><td>{{cmp.lWhere}}</td></tr>
+      <tr><th>{{cmp.rowInstall}}</th><td>{{cmp.tInstall}}</td><td>{{cmp.uInstall}}</td><td>{{cmp.cInstall}}</td><td>{{cmp.lInstall}}</td></tr>
+      <tr><th>{{cmp.rowCheck}}</th><td>{{cmp.tCheck}}</td><td>{{cmp.uCheck}}</td><td>{{cmp.cCheck}}</td><td>{{cmp.lCheck}}</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="status" class="section">
+  <h2>{{status.title}}</h2>
+  <div class="status-grid">
+    <div><h3>{{status.works}}</h3><ul>{{status.worksList}}</ul></div>
+    <div><h3>{{status.progress}}</h3><ul>{{status.progressList}}</ul></div>
+    <div><h3>{{status.next}}</h3><ul>{{status.nextList}}</ul></div>
+  </div>
+</section>
+
+<section id="limits" class="section risks">
+  <h2>{{limits.title}}</h2>
+  <ul>{{limits.list}}</ul>
+</section>
+
+<section id="faq" class="section">
+  <h2>{{faq.title}}</h2>
+  <div class="faq">
+    <details><summary>{{faq.q1}}</summary><p>{{faq.a1}}</p></details>
+    <details><summary>{{faq.q2}}</summary><p>{{faq.a2}}</p></details>
+    <details><summary>{{faq.q3}}</summary><p>{{faq.a3}}</p></details>
+    <details><summary>{{faq.q4}}</summary><p>{{faq.a4}}</p></details>
+    <details><summary>{{faq.q5}}</summary><p>{{faq.a5}}</p></details>
+    <details><summary>{{faq.q6}}</summary><p>{{faq.a6}}</p></details>
+    <details><summary>{{faq.q7}}</summary><p>{{faq.a7}}</p></details>
+    <details><summary>{{faq.q8}}</summary><p>{{faq.a8}}</p></details>
+    <details><summary>{{faq.q9}}</summary><p>{{faq.a9}}</p></details>
+  </div>
+</section>
+
+<section id="agent" class="section">
+  <h2>{{agent.title}}</h2>
+  <p>{{agent.p}}</p>
+  <div class="copy-block"><pre id="agent-prompt">{{agent.prompt}}</pre><button type="button" class="btn ghost small" data-copy="agent-prompt">{{agent.copy}}</button></div>
+</section>
+
+<section id="contact" class="section contact">
+  <h2>{{contact.title}}</h2>
+  <div class="author">
+    <picture><source type="image/webp" srcset="/img/andrii-shramko-160.webp 1x, /img/andrii-shramko-320.webp 2x"><img class="avatar" src="/img/andrii-shramko-320.jpg" alt="Andrii Shramko" width="160" height="160" loading="lazy" decoding="async"></picture>
+    <div><p class="author-name">Andrii Shramko</p><p class="muted">{{contact.role}}</p></div>
+  </div>
+  <p>{{contact.p1}}</p>
+  <p><strong>{{contact.open}}</strong></p>
+  <ul class="links">
+    <li><a href="https://calendar.app.google/Ff729HqGk4RpzPNDA" rel="noopener" target="_blank">{{contact.call}}</a></li>
+    <li><a href="https://www.linkedin.com/in/andrii-shramko/" rel="noopener" target="_blank">LinkedIn</a></li>
+    <li><a href="mailto:zmei116@gmail.com">zmei116@gmail.com</a></li>
+    <li><a href="https://github.com/AndriiShramko" rel="noopener" target="_blank">GitHub</a></li>
+  </ul>
+  <form id="lead" class="card lead" novalidate>
+    <h3>{{lead.title}}</h3>
+    <div class="chips-select" role="radiogroup" aria-label="{{lead.roleLabel}}">
+      <label><input type="radio" name="role" value="scanner"><span>{{lead.rScanner}}</span></label>
+      <label><input type="radio" name="role" value="studio"><span>{{lead.rStudio}}</span></label>
+      <label><input type="radio" name="role" value="developer"><span>{{lead.rDeveloper}}</span></label>
+      <label><input type="radio" name="role" value="platform"><span>{{lead.rPlatform}}</span></label>
+      <label><input type="radio" name="role" value="investor"><span>{{lead.rInvestor}}</span></label>
+      <label><input type="radio" name="role" value="other"><span>{{lead.rOther}}</span></label>
+    </div>
+    <label>{{lead.email}} <input type="email" name="email" autocomplete="email" inputmode="email" maxlength="200"></label>
+    <label>{{lead.message}} <textarea name="message" rows="3" maxlength="1000"></textarea></label>
+    <label class="hp" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    <label class="check"><input type="checkbox" name="consent"> {{lead.consent}}</label>
+    <button type="submit" class="btn primary" disabled>{{lead.send}}</button>
+    <p class="form-status muted small" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<section id="privacy" class="section privacy">
+  <h2>{{privacy.title}}</h2>
+  <p>{{privacy.p1}}</p>
+  <p>{{privacy.p2}}</p>
+  <p>{{privacy.p3}}</p>
+</section>
+</main>
+
+<footer class="foot">
+  <p>{{footer.line}}</p>
+  <p class="muted small">{{footer.disclaimer}}</p>
+  <div class="langs" role="group" aria-label="{{nav.language}}">
+    <a href="/en/" hreflang="en" data-lang="en" lang="en">English</a><a href="/es/" hreflang="es" data-lang="es" lang="es">Español</a><a href="/pl/" hreflang="pl" data-lang="pl" lang="pl">Polski</a><a href="/ru/" hreflang="ru" data-lang="ru" lang="ru">Русский</a>
+  </div>
+  <p class="muted small"><span id="release"></span></p>
+</footer>
+
+<button id="fb-open" type="button" class="fb-btn">{{fb.button}}</button>
+<dialog id="fb" class="fb" aria-labelledby="fb-title">
+  <form method="dialog" class="fb-form" novalidate>
+    <div class="fb-head"><h2 id="fb-title">{{fb.title}}</h2><button type="button" class="btn ghost small" id="fb-close" aria-label="{{fb.close}}">✕</button></div>
+    <div class="tabs" role="radiogroup" aria-label="{{fb.kindLabel}}">
+      <label><input type="radio" name="kind" value="bug" checked><span>{{fb.bug}}</span></label>
+      <label><input type="radio" name="kind" value="idea"><span>{{fb.idea}}</span></label>
+      <label><input type="radio" name="kind" value="coop"><span>{{fb.coop}}</span></label>
+    </div>
+    <div class="fb-msg">
+      <label>{{fb.message}} <textarea name="message" rows="5" maxlength="2000"></textarea></label>
+      <label>{{fb.contact}} <input type="text" name="contact" maxlength="200" autocomplete="email" placeholder="{{fb.contactPh}}"></label>
+      <div class="fb-diag">
+        <label class="check"><input type="checkbox" name="diag" checked> {{fb.diag}}</label>
+        <p class="help">{{fb.diagList}}</p>
+      </div>
+      <label class="hp" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      <button type="button" class="btn primary" id="fb-send">{{fb.send}}</button>
+    </div>
+    <div class="fb-coop" hidden><p>{{fb.coopText}}</p><a class="btn primary" href="#contact" id="fb-to-contact">{{fb.coopGo}}</a></div>
+    <p class="form-status small" role="status" aria-live="polite"></p>
+  </form>
+</dialog>
+
+<div id="consent" class="consent-bar" hidden>
+  <p>{{consent.text}}</p>
+  <div><button type="button" class="btn ghost small" id="consent-no">{{consent.decline}}</button><button type="button" class="btn primary small" id="consent-yes">{{consent.accept}}</button></div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Shramko SOG LOD Converter
+
+> Free browser tool (https://sog.flyreelstudio.eu) by Andrii Shramko that converts huge 3D Gaussian Splatting PLY files (hundreds of millions of splats, 10+ GB) into a SuperSplat-ready Streamed SOG .zip with real levels of detail (LOD) and SOG compression. Runs on the user's own GPU (WebGPU) and CPU; the file is never uploaded. Open source, MIT: https://github.com/AndriiShramko/shramko-sog-lod-converter
+
+## Key facts
+- Output: Streamed SOG archive — lod-meta.json at the zip root + SOG units (meta.json + WebP textures) in sub-folders; ZIP64 for archives over 4 GB; accepted by superspl.at's upload (limit 10 GB per upload).
+- LOD policy (same as SuperSplat's server side): each level keeps half of the previous until a level holds ≤ 1,000,000 splats → 1 + ceil(log2(N / 1M)) levels (259M splats → 10 levels).
+- Large scenes are processed in spatial tiles sized to the RAM the user allows (browser tabs are capped near 16 GB; single buffers near 2 GB).
+- Engine: PlayCanvas splat-transform 3.8.0 (MIT) for decimation and SOG/LOD writing, WebGPU via the PlayCanvas engine.
+- The finished archive is read back from disk and verified (levels, chunk files, counts, accepted file names).
+- A Streamed SOG built from a single PLY without decimated levels has only one level (no LOD) — a common mistake this tool avoids and its verifier detects.
+
+## Pages
+- English: https://sog.flyreelstudio.eu/en/
+- Español: https://sog.flyreelstudio.eu/es/
+- Polski: https://sog.flyreelstudio.eu/pl/
+- Русский: https://sog.flyreelstudio.eu/ru/
+
+## For agents
+- README: https://github.com/AndriiShramko/shramko-sog-lod-converter#readme
+- Setup protocol: https://github.com/AndriiShramko/shramko-sog-lod-converter/blob/main/AGENT_SETUP.md
+- Skill: https://github.com/AndriiShramko/shramko-sog-lod-converter/blob/main/SKILL.md
+
+## Author
+Andrii Shramko — drone and 360° Gaussian splatting scans of cities and buildings; open to collaboration, partnerships, licensing and funding.
+- LinkedIn: https://www.linkedin.com/in/andrii-shramko/
+- Book a call: https://calendar.app.google/Ff729HqGk4RpzPNDA
+- Email: zmei116@gmail.com
+- GitHub: https://github.com/AndriiShramko

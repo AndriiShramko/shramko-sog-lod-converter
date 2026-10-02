@@ -1,0 +1,4 @@
+# never in git: the hub address/user/key/paths, and neighbour snapshots (they list other services)
+hub.env
+snapshots/
+__pycache__/

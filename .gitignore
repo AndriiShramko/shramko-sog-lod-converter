@@ -1,0 +1,32 @@
+# dependencies and builds
+node_modules/
+dist/
+dist-*/
+*.tgz
+*.zip
+
+# generated per-language pages (built from web/template.html)
+web/en/
+web/es/
+web/pl/
+web/ru/
+web/index.html
+
+# never in git: hub address/user/key/paths, server secrets, neighbour snapshots, visitor reports
+deploy/hub.env
+deploy/snapshots/
+config.env
+*.env
+!*.env.example
+tools/reports/inbox/
+
+# local experiments and caches
+spike/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.log
+
+# e2e browser profile
+.e2e-profile/

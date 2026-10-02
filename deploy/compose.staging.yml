@@ -1,0 +1,9 @@
+# Overlay for the FIRST certificate: Let's Encrypt STAGING issuer (no rate-limit risk while routing
+# and DNS are being proven).
+#   docker compose -f compose.yml -f compose.staging.yml up -d
+# Then, once https://sog.flyreelstudio.eu answers (with the untrusted staging certificate):
+#   docker compose -f compose.yml up -d --force-recreate sog-web
+services:
+  sog-web:
+    environment:
+      LETSENCRYPT_TEST: "true"

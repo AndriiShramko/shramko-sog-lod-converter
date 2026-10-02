@@ -102,6 +102,20 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
 .facts dt { color: var(--muted); font-size: .8rem; }
 .facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .plan h4 { margin-top: 6px; }
+.orient { margin: 6px 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); }
+.pv { position: relative; border-radius: 10px; overflow: hidden; background: #0b0d10; border: 1px solid var(--line); }
+.pv canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: 460px; touch-action: none; cursor: grab; }
+.pv canvas:active { cursor: grabbing; }
+.pv-status { position: absolute; left: 12px; top: 8px; margin: 0; font-size: .85rem; color: var(--muted); pointer-events: none; text-shadow: 0 1px 2px #000; }
+.pv-views { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; }
+.pv-views .btn { background: rgba(11, 13, 16, .7); }
+.orient-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 6px; }
+.orient-tools .turns { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.orient-angles { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.orient-angles label { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.orient-angles input { width: 92px; margin: 0; }
+.o-msg { min-height: 1.4em; color: var(--warn); margin: 6px 0 0; }
+.o-msg.ok { color: var(--ok); }
 table { border-collapse: collapse; width: 100%; }
 .levels { max-width: 440px; font-variant-numeric: tabular-nums; }
 .levels th, .levels td { text-align: left; padding: 4px 10px; border-bottom: 1px solid var(--line); }

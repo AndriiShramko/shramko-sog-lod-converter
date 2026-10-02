@@ -1,6 +1,7 @@
 // End-to-end run of the real site in real Chrome (Playwright), on a real PLY.
 //
 //   node tools/e2e.mjs <input.ply> <out.zip> [--mem 12] [--tile 0] [--gpu 1] [--api http://127.0.0.1:8090] [--shots dir] [--profile dir]
+//                     [--preset all] [--rotate -90,0,0] [--centre 1]
 //
 // Serves dist/ (with /api/* proxied to a local API server or stubbed), opens /en/, picks the file
 // through the page's own <input>, clicks Convert, follows the progress until the result or the
@@ -27,6 +28,8 @@ const profile = opt('--profile', '.e2e-profile');
 const logFile = opt('--log', '');
 const dist = resolve(opt('--dist', 'dist'));
 const preset = opt('--preset', '');
+const rotate = opt('--rotate', '');
+const centre = opt('--centre', '');
 const PORT = parseInt(opt('--port', '5181'), 10);
 if (shots) mkdirSync(shots, { recursive: true });
 
@@ -107,6 +110,21 @@ await page.setInputFiles('#file-input', input);
 await page.waitForFunction(() => document.querySelectorAll('#fi-levels tr').length > 0 || !document.getElementById('fi-warn').hidden, null, { timeout: 60000 });
 say('plan:', (await page.locator('#fi-facts').innerText()).replace(/\s+/g, ' '));
 say('levels:', (await page.locator('#fi-levels').innerText()).replace(/\s+/g, ' '));
+// orientation: wait for the preview sample, then set the angles the way a user types them
+await page.waitForFunction(() => /Preview:|preview could not|no WebGL2/i.test(document.getElementById('pv-status')?.textContent ?? ''), null, { timeout: 180000 });
+say('preview:', await page.locator('#pv-status').innerText());
+if (rotate) {
+    const [rx, ry, rz] = rotate.split(',');
+    await page.fill('#o-x', rx);
+    await page.fill('#o-y', ry);
+    await page.fill('#o-z', rz);
+    await page.locator('#o-z').dispatchEvent('change');
+}
+if (centre) {
+    await page.setChecked('#o-centre', centre !== '0');
+    await page.locator('#o-centre').dispatchEvent('change');
+}
+say('orientation:', await page.inputValue('#o-x'), await page.inputValue('#o-y'), await page.inputValue('#o-z'), 'centre', String(await page.isChecked('#o-centre')), '|', await page.locator('#o-msg').innerText());
 if (shots) await page.screenshot({ path: join(shots, '01-plan.png'), fullPage: false });
 
 const t0 = Date.now();

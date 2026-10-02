@@ -28,22 +28,32 @@ export interface ConvertSettings {
     memoryBytes: number;
     /** Splats per tile; 0 = derive from memoryBytes. */
     tileSplats: number;
+    /**
+     * Rotation applied to the whole scene, as Euler angles in degrees in the PlayCanvas engine's
+     * space (the space SuperSplat shows: Y is up). Same convention as splat-transform's `-r x,y,z`.
+     * Scans differ — this is chosen per file in the preview, never assumed.
+     */
+    rotation: [number, number, number];
+    /** Translation applied after the rotation (engine space), e.g. to centre the scene. */
+    translation: [number, number, number];
 }
 
 export const DEFAULT_SETTINGS: ConvertSettings = {
     lodRatio: 0.5,
-    minCoarsest: 1_000_000,
+    minCoarsest: 100_000,
     maxLevels: 0,
-    decimator: 'uniform',
+    decimator: 'adaptive',
     filterNaN: true,
     shBands: -1,
     iterations: 10,
     webpEffort: null,
-    chunkCount: 512,
+    chunkCount: 256,
     chunkExtent: 16,
-    chunkMin: 8,
+    chunkMin: 16,
     memoryBytes: 8 * 1024 ** 3,
-    tileSplats: 0
+    tileSplats: 0,
+    rotation: [0, 0, 0],
+    translation: [0, 0, 0]
 };
 
 export type Stage = 'header' | 'sample' | 'read' | 'decimate' | 'encode' | 'finalize' | 'verify' | 'done';
@@ -67,9 +77,12 @@ export interface PlanInfo {
 // measured with splat-transform 3.8.0 on an i9-7980XE / RTX 4090 (20M-splat sample).
 export const INITIAL = { readBps: 300e6, decimatePerSplat: 7.5e-6, encodePerSplat: 6.7e-6 };
 
+/** Adaptive decimation is ~2.4× slower than uniform (measured: 20M → 10M, 5 min 59 s vs 2 min 29 s). */
+export const decimatorFactor = (s: Pick<ConvertSettings, 'decimator'>) => (s.decimator === 'adaptive' ? 2.4 : 1);
+
 /** Plan the per-level splat counts for a scene of `n` splats. */
 export const planLevels = (n: number, s: Pick<ConvertSettings, 'lodRatio' | 'minCoarsest' | 'maxLevels'>): number[] => {
-    const cap = s.maxLevels > 0 ? Math.min(16, s.maxLevels) : 16;
+    const cap = s.maxLevels > 0 ? Math.min(24, s.maxLevels) : 24;
     const out = [n];
     let c = n;
     while (c > s.minCoarsest && out.length < cap) {
@@ -82,7 +95,7 @@ export const planLevels = (n: number, s: Pick<ConvertSettings, 'lodRatio' | 'min
 /** Approximate peak bytes per splat while one tile is converted. */
 export const workBytesPerSplat = (keptFloats: number, s: ConvertSettings) => {
     const record = keptFloats * 4;
-    const decimate = s.decimator === 'adaptive' ? 220 : 110;
+    const decimate = s.decimator === 'adaptive' ? 130 : 110; // measured peaks: 1.97 vs 2.15 GB for 20M (Node)
     return record /* level 0 */ + record /* coarser levels, sum ≈ 1× */ + decimate + 60 /* LOD writer */;
 };
 
@@ -104,7 +117,7 @@ export const previewPlan = (header: PlyHeader, fileBytes: number, s: ConvertSett
     const passes = Math.max(1, Math.ceil((header.vertexCount * kept.length * 4) / groupBytes(kept.length, tile, s)));
     const decIn = levels.slice(0, -1).reduce((a, b) => a + b, 0);
     const enc = levels.reduce((a, b) => a + b, 0);
-    const decPer = gpu ? INITIAL.decimatePerSplat : INITIAL.decimatePerSplat * 4;
+    const decPer = (gpu ? INITIAL.decimatePerSplat : INITIAL.decimatePerSplat * 4) * decimatorFactor(s);
     return {
         splats: header.vertexCount,
         fileBytes,

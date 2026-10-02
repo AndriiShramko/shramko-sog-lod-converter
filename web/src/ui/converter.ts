@@ -11,6 +11,7 @@ import { browserInfo, describe, getRelease, gpuInfo, recentErrors } from './diag
 import { fmtBytes, fmtDuration, fmtInt, lang, t } from './i18n';
 import { loadSettings, readForm, saveSettings, writeForm, defaults, type UiSettings } from './settings';
 import { PRESETS, VIEWER_BUDGETS, matchPreset, type PresetId } from '../engine/presets';
+import { initOrientationPanel, loadOrientation, orientationForConversion } from './orient-panel';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const RUN_KEY = 'sog_run_v1';
@@ -146,6 +147,7 @@ const useFile = async (f: File) => {
         if (f.size < need) throw new Error(`The file is ${fmtInt(f.size)} bytes but its header needs ${fmtInt(need)}: it is truncated.`);
         track('file_selected', sizeBucket(f.size), { splats: header.vertexCount, sh: header.shBands });
         renderPlan();
+        loadOrientation(f, header);
     } catch (e) {
         header = null;
         showFileWarn((e as Error).message);
@@ -180,7 +182,7 @@ const renderPlan = () => {
         [t('ui.facts.tiles'), `${p.tiles} / ${p.passes}`]
     ];
     const floor = p.levels[p.levels.length - 1];
-    const floorPct = Math.round((floor / VIEWER_BUDGETS.phoneOrVr) * 100);
+    const floorPct = Math.round((floor / VIEWER_BUDGETS.vrTarget) * 100);
     facts.push([t('ui.facts.floor'), t('ui.floorValue', { n: fmtInt(floor), p: floorPct })]);
     if (header.extraProperties.length) facts.push([t('ui.facts.dropped'), header.extraProperties.join(', ')]);
     const dl = $('fi-facts');
@@ -207,7 +209,7 @@ const renderPlan = () => {
         t('ui.planNote', { levels: p.levels.length, total: fmtInt(total) });
     const warns: string[] = [];
     if (p.estimatedOutputBytes > 10 * 1024 ** 3) warns.push(t('ui.over10', { size: fmtBytes(p.estimatedOutputBytes) }));
-    if (floor > 0.5 * VIEWER_BUDGETS.phoneOrVr) warns.push(t('ui.floorWarn'));
+    if (floor > 0.25 * VIEWER_BUDGETS.vrTarget) warns.push(t('ui.floorWarn'));
     if (warns.length) showFileWarn(warns.join(' ')); else hideFileWarn();
 };
 
@@ -251,6 +253,8 @@ const start = async () => {
         track('save_fallback', 'opfs');
     }
 
+    // after the save dialog: the dialog needs the click's user activation, waiting first could lose it
+    const orient = await orientationForConversion();
     running = true;
     updateConvertButton();
     logLines = [];
@@ -284,7 +288,8 @@ const start = async () => {
         finishWithError({ name: 'WorkerError', message: e.message || 'The converter stopped unexpectedly (often: out of memory).' }, currentStage, currentDetail, false);
     };
     const { useGpu, workers, ...conv } = settings;
-    const msg: StartMessage = { type: 'start', file, output, settings: conv, useGpu: useGpu && 'gpu' in navigator, workers };
+    const msg: StartMessage = { type: 'start', file, output, settings: { ...conv, rotation: orient.rotation, translation: orient.translation }, useGpu: useGpu && 'gpu' in navigator, workers };
+    log(`orientation: rotate ${orient.rotation.join(', ')}°, move ${orient.translation.join(', ')}`);
     worker.postMessage(msg);
 };
 
@@ -621,6 +626,7 @@ const cancel = () => {
 
 export const initConverter = () => {
     showCompat();
+    initOrientationPanel();
     writeForm(settings);
     try {
         const pref = localStorage.getItem(REPORT_PREF);

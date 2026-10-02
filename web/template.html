@@ -76,6 +76,36 @@
     <div id="file-info" class="file-info" hidden>
       <div class="file-row"><strong id="fi-name"></strong><button id="fi-change" type="button" class="btn ghost small">{{app.change}}</button></div>
       <dl class="facts" id="fi-facts"></dl>
+      <div class="orient" id="orient">
+        <h4>{{orient.title}}</h4>
+        <p class="muted small">{{orient.lead}}</p>
+        <div class="pv">
+          <canvas id="pv-canvas" aria-label="{{orient.canvasLabel}}"></canvas>
+          <p id="pv-status" class="pv-status">{{orient.loading}}</p>
+          <div class="pv-views">
+            <button type="button" class="btn ghost small" data-view="side">{{orient.side}}</button>
+            <button type="button" class="btn ghost small" data-view="top">{{orient.top}}</button>
+          </div>
+        </div>
+        <div class="orient-tools">
+          <button type="button" class="btn small" id="o-auto">{{orient.auto}}</button>
+          <button type="button" class="btn small" id="o-flip">{{orient.flip}}</button>
+          <span class="turns">
+            <button type="button" class="btn ghost small" data-turn="0,-90">X −90°</button><button type="button" class="btn ghost small" data-turn="0,90">X +90°</button>
+            <button type="button" class="btn ghost small" data-turn="1,-90">Y −90°</button><button type="button" class="btn ghost small" data-turn="1,90">Y +90°</button>
+            <button type="button" class="btn ghost small" data-turn="2,-90">Z −90°</button><button type="button" class="btn ghost small" data-turn="2,90">Z +90°</button>
+          </span>
+          <button type="button" class="btn ghost small" id="o-reset">{{orient.reset}}</button>
+        </div>
+        <div class="orient-angles">
+          <span class="muted small">{{orient.angles}}</span>
+          <label>X <input type="number" id="o-x" step="1" min="-180" max="180" inputmode="decimal"></label>
+          <label>Y <input type="number" id="o-y" step="1" min="-180" max="180" inputmode="decimal"></label>
+          <label>Z <input type="number" id="o-z" step="1" min="-180" max="180" inputmode="decimal"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="o-centre" checked> {{orient.centre}}</label>
+        <p id="o-msg" class="small o-msg" aria-live="polite"></p>
+      </div>
       <div class="plan">
         <h4>{{app.planTitle}}</h4>
         <table class="levels"><thead><tr><th>{{app.level}}</th><th>{{app.splats}}</th><th>{{app.share}}</th></tr></thead><tbody id="fi-levels"></tbody></table>
@@ -90,12 +120,13 @@
     <div class="step-head"><span class="num">2</span><h3>{{app.step2}}</h3></div>
     <p class="muted">{{app.presetNote}}</p>
     <div class="presets" role="radiogroup" aria-label="{{preset.label}}">
-      <label class="preset"><input type="radio" name="preset" value="standard"><span><b>{{preset.standard}}</b><small>{{preset.standardDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="all"><span><b>{{preset.all}}</b><small>{{preset.allDesc}}</small></span></label>
       <label class="preset"><input type="radio" name="preset" value="aerial"><span><b>{{preset.aerial}}</b><small>{{preset.aerialDesc}}</small></span></label>
       <label class="preset"><input type="radio" name="preset" value="street"><span><b>{{preset.street}}</b><small>{{preset.streetDesc}}</small></span></label>
       <label class="preset"><input type="radio" name="preset" value="interior"><span><b>{{preset.interior}}</b><small>{{preset.interiorDesc}}</small></span></label>
       <label class="preset"><input type="radio" name="preset" value="object"><span><b>{{preset.object}}</b><small>{{preset.objectDesc}}</small></span></label>
       <label class="preset"><input type="radio" name="preset" value="light"><span><b>{{preset.light}}</b><small>{{preset.lightDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="standard"><span><b>{{preset.standard}}</b><small>{{preset.standardDesc}}</small></span></label>
     </div>
     <p class="muted small" id="preset-custom" hidden>{{preset.custom}}</p>
     <details id="advanced" class="advanced">
@@ -236,6 +267,8 @@
     <details><summary>{{faq.q8}}</summary><p>{{faq.a8}}</p></details>
     <details><summary>{{faq.q9}}</summary><p>{{faq.a9}}</p></details>
     <details><summary>{{faq.q10}}</summary><p>{{faq.a10}}</p></details>
+    <details><summary>{{faq.q11}}</summary><p>{{faq.a11}}</p></details>
+    <details><summary>{{faq.q12}}</summary><p>{{faq.a12}}</p></details>
   </div>
 </section>
 

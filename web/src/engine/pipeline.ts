@@ -11,7 +11,9 @@
 //
 // Platform-neutral: the browser worker and the Node test harness both drive it.
 
+import { Vec3 } from 'playcanvas';
 import {
+    bakeTransform,
     createChunkDataPool,
     decimateSource,
     decimateSourceAdaptive,
@@ -19,6 +21,7 @@ import {
     processSource,
     readPly,
     stackLods,
+    Transform,
     version as stVersion,
     writeLodSource,
     writeSource,
@@ -31,7 +34,7 @@ import { LodMerger, serializeMeta, type LodMeta } from './lod-merge';
 import { MemoryFs, SegmentReadSource } from './memory';
 import { mortonReorderPly, mortonReorderStore } from './morton';
 import { buildPlyHeader, keptPropertyNames, modelComments, parsePlyHeader, type PlyHeader } from './ply-header';
-import { CONVERTER_VERSION, INITIAL, groupBytes, outBytesPerSplat, planLevels, tileSize, type ConvertSettings, type PlanInfo, type Stage } from './plan';
+import { CONVERTER_VERSION, INITIAL, decimatorFactor, groupBytes, outBytesPerSplat, planLevels, tileSize, type ConvertSettings, type PlanInfo, type Stage } from './plan';
 import { routeGroup } from './router';
 import { groupTiles, planTiles, samplePositions, type InputBlob, type KdPlan } from './tiling';
 import { ZipWriter, type ByteSink } from './zip64';
@@ -106,7 +109,7 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
     const bodyBytes = header.vertexCount * header.stride;
     let readBps = INITIAL.readBps;
     // CPU-only decimation is ~4× slower (measured: 29 vs 7.5 µs/splat)
-    let decPer = INITIAL.decimatePerSplat * (env.createDevice ? 1 : 4);
+    let decPer = INITIAL.decimatePerSplat * (env.createDevice ? 1 : 4) * decimatorFactor(s);
     let encPer = INITIAL.encodePerSplat;
     const decInputTotal = levelsPlan.slice(0, -1).reduce((a, b) => a + b, 0);
     const encTotal = levelsPlan.reduce((a, b) => a + b, 0);
@@ -213,6 +216,14 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
     const pool = createChunkDataPool({ maxPooledBytes: 512 * 1024 * 1024 });
     const commentLines = modelComments(header);
     const actions: Parameters<typeof processSource>[1] = [];
+    const [rx, ry, rz] = s.rotation ?? [0, 0, 0];
+    const [tx, ty, tz] = s.translation ?? [0, 0, 0];
+    const hasRot = Math.abs(rx) + Math.abs(ry) + Math.abs(rz) > 1e-9;
+    const hasMove = Math.abs(tx) + Math.abs(ty) + Math.abs(tz) > 1e-9;
+    const rotated = hasRot || hasMove;
+    // order matters: rotate first, then move (both in engine space, like splat-transform -r then -t)
+    if (hasRot) actions.push({ kind: 'rotate', value: new Vec3(rx, ry, rz) });
+    if (hasMove) actions.push({ kind: 'translate', value: new Vec3(tx, ty, tz) });
     if (s.filterNaN) actions.push({ kind: 'filterNaN' });
     if (s.shBands >= 0 && s.shBands < header.shBands) actions.push({ kind: 'filterBands', value: s.shBands as 0 | 1 | 2 | 3 });
     const decimate = s.decimator === 'adaptive' ? decimateSourceAdaptive : decimateSource;
@@ -259,7 +270,10 @@ export const runPipeline = async (env: PipelineEnv, settings: ConvertSettings): 
 
                 // level 0: the tile's own splats as an in-memory PLY
                 const l0Raw = await readPly(new SegmentReadSource([buildPlyHeader(store.count, kept, commentLines), ...store.segments()]), pool);
-                const l0 = actions.length > 0 ? await processSource(l0Raw, actions, pool, { createDevice: env.createDevice }) : l0Raw;
+                const processed = actions.length > 0 ? await processSource(l0Raw, actions, pool, { createDevice: env.createDevice }) : l0Raw;
+                // bake the user's rotation into the data, labelled PLY space like every other level,
+                // so decimated levels, stackLods and the LOD writer all see one coordinate space
+                const l0 = rotated ? bakeTransform(processed, Transform.PLY) : processed;
                 const levels: ChunkSource[] = [l0];
                 const memFs = new MemoryFs();
 

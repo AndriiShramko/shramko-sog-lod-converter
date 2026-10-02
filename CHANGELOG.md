@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 — 2026-10-02
+
+- **Preview and orientation.** After picking a file, a light sample (~0.15% of the splats, read from ~1,000 places across the file; ~2 s for 17.6 GB) is drawn with WebGL2 the way SuperSplat will show it (Y up, ground grid). Turn it with *Auto* (thinnest axis from the sample's covariance; says when unsure of the sign), *Flip upside down*, ±90° turns or exact angles (`splat-transform -r` convention). Optional centring puts the centre at the origin and the ground at 0. The rotation is baked into every level of the archive and remembered per file.
+- **Levels for VR headsets and phones.** New default preset *All devices*: levels continue down to ≤ 100K splats (259M → 13 levels, first view 63K splats = 13% of a 0.5M VR budget), adaptive simplification, 256K-splat chunks. *Light* goes to ≤ 50K. *SuperSplat standard* keeps the old ≤ 1M policy. The page shows the first view as a share of a 0.5M VR budget.
+- 7 scene presets (All devices, City from a drone, Streets at eye level, Rooms & interiors, Object, Light, SuperSplat standard); max levels raised to 24; time estimate accounts for adaptive simplification.
+- Tools: `tools/test-orientation.ts` (Euler parity with the PlayCanvas engine, axis detection with a negative control), `tools/orient-check.mjs` (visual check of the panel), `e2e.mjs --rotate/--centre`, `node-convert.ts --rotate/--decimator`.
+- FAQ: rotating a sideways scene; running a 250M-splat city on a VR headset.
+
 ## 1.0.0 — 2026-10-02
 
 First release.

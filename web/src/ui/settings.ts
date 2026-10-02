@@ -83,6 +83,9 @@ export const readForm = (): UiSettings => {
         memoryBytes: Math.round(num('s-mem', d.memoryBytes / GB, 2, 15)) * GB,
         tileSplats: Math.round(num('s-tile', 0, 0, 60_000_000)),
         useGpu: $<HTMLInputElement>('s-gpu').checked,
-        workers: Math.round(num('s-workers', 0, 0, 16))
+        workers: Math.round(num('s-workers', 0, 0, 16)),
+        // per-file orientation lives in the preview panel (orient-panel.ts), not in global settings
+        rotation: [0, 0, 0],
+        translation: [0, 0, 0]
     };
 };

@@ -604,7 +604,7 @@ PROP_RULES: dict[str, set | re.Pattern] = {
     "stage": re.compile(r"[a-z0-9][a-z0-9_-]{0,23}"),
     "method": re.compile(r"[a-z0-9][a-z0-9_-]{0,23}"),
     "reason": re.compile(r"[a-z0-9][a-z0-9_-]{0,23}"),
-    "preset": {"standard", "aerial", "street", "interior", "object", "light", "custom"},
+    "preset": {"all", "standard", "aerial", "street", "interior", "object", "light", "custom"},
 }
 # event name -> its one optional property (None: a bare count)
 EVENTS: dict[str, str | None] = {

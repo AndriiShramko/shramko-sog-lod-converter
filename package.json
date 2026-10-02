@@ -1,6 +1,6 @@
 {
   "name": "shramko-sog-lod-converter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Convert giant 3D Gaussian Splatting PLY files into a SuperSplat-ready Streamed SOG (.zip) with real LODs, in the browser on your own GPU/CPU.",
   "scripts": {
     "pages": "node web/scripts/gen-pages.mjs",

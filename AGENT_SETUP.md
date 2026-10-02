@@ -5,9 +5,10 @@ Use this when a person asks their AI agent to "make my splat scan fit SuperSplat
 ## A. Just convert a file (no install)
 
 1. Tell the user to open <https://sog.flyreelstudio.eu> in desktop Chrome or Edge and drop the `.ply`.
-2. Defaults match SuperSplat (levels halve until ≤ 1M splats; chunks 512K / 16 m / 8K). Change settings only for a reason the user gives (see README → Settings).
-3. When it finishes, the page shows "Checked: lod-meta.json at the root, N levels…". If it shows problems or an error, the page has already sent an anonymous report (if allowed); copy the details for the user.
-4. Upload the `.zip` at superspl.at → Upload.
+2. Ask the user to check the preview: the ground must be at the bottom. Orientation differs between scans and tools, so it is chosen per file (Auto suggests, Flip / ±90° / exact angles fix it).
+3. The default preset *All devices* builds levels down to ≤ 100K splats so the scene runs on desktops, phones and VR headsets; *SuperSplat standard* matches SuperSplat (≤ 1M). Change settings only for a reason the user gives (see README → Settings).
+4. When it finishes, the page shows "Checked: lod-meta.json at the root, N levels…". If it shows problems or an error, the page has already sent an anonymous report (if allowed); copy the details for the user.
+5. Upload the `.zip` at superspl.at → Upload.
 
 ## B. Verify an existing Streamed SOG zip
 

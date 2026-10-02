@@ -65,7 +65,9 @@ const main = async () => {
         memoryBytes: parseFloat(flag('--memory-gb', '8')!) * 1024 ** 3,
         tileSplats: parseInt(flag('--tile-splats', '0')!, 10),
         minCoarsest: parseInt(flag('--min-coarsest', `${DEFAULT_SETTINGS.minCoarsest}`)!, 10),
-        maxLevels: parseInt(flag('--max-levels', '0')!, 10)
+        maxLevels: parseInt(flag('--max-levels', '0')!, 10),
+        rotation: (flag('--rotate', '0,0,0')!.split(',').map(Number) as [number, number, number]),
+        decimator: flag('--decimator', 'uniform') === 'adaptive' ? 'adaptive' : 'uniform'
     };
     const input = await fileInput(inPath);
     const output = await fileSink(outPath);

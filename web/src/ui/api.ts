@@ -77,10 +77,13 @@ const GA_ID = (import.meta as unknown as { env: Record<string, string | undefine
 let gaLoaded = false;
 type Gtag = (...args: unknown[]) => void;
 
-const gtag: Gtag = (...args) => {
+// gtag.js only recognises commands pushed as an `arguments` object (an array is ignored),
+// so this must be a classic function, not an arrow function with rest parameters.
+const gtag: Gtag = function gtagShim() {
     const w = window as unknown as { dataLayer: unknown[] };
     w.dataLayer = w.dataLayer || [];
-    w.dataLayer.push(args);
+    // eslint-disable-next-line prefer-rest-params
+    w.dataLayer.push(arguments);
 };
 
 const gtagEvent = (name: string, props?: Record<string, unknown>) => {

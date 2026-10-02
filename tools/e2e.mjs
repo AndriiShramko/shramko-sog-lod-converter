@@ -25,7 +25,8 @@ const api = opt('--api', '');
 const shots = opt('--shots', '');
 const profile = opt('--profile', '.e2e-profile');
 const logFile = opt('--log', '');
-const dist = resolve('dist');
+const dist = resolve(opt('--dist', 'dist'));
+const preset = opt('--preset', '');
 const PORT = parseInt(opt('--port', '5181'), 10);
 if (shots) mkdirSync(shots, { recursive: true });
 
@@ -96,6 +97,7 @@ page.on('crash', () => say('[CRASH] the page crashed'));
 
 await page.goto(`http://localhost:${PORT}/en/`);
 // settings
+if (preset) await page.check(`input[name=preset][value=${preset}]`, { force: true });
 await page.click('#advanced summary');
 await page.fill('#s-mem', String(mem));
 await page.fill('#s-tile', String(tile));

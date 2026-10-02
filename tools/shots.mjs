@@ -34,6 +34,7 @@ const shots = [
     { name: 'desktop-ru-top', lang: 'ru', vp: { width: 1366, height: 900 } },
     { name: 'mobile-en-top', lang: 'en', vp: { width: 375, height: 812 }, mobile: true },
     { name: 'mobile-pl-contact', lang: 'pl', vp: { width: 375, height: 812 }, mobile: true, anchor: '#contact' },
+    { name: 'desktop-pl-presets', lang: 'pl', vp: { width: 1366, height: 900 }, anchor: '#step-settings' },
     { name: 'og-source', lang: 'en', vp: { width: 1200, height: 630 } }
 ];
 const problems = [];

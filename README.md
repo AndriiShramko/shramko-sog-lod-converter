@@ -6,7 +6,7 @@
 
 ![Shramko SOG LOD Converter — the converter page](docs/assets/screenshot-converter.png)
 
-<!--STATUS-->
+> **Status (2 Oct 2026):** live at <https://sog.flyreelstudio.eu>, verified end to end in Chrome (2M and 20M-splat samples, preset runs, error reports, feedback). The full 259M-splat / 17.6 GB run and its upload to superspl.at are being finished today — see *Measured*.
 
 ## Why this exists
 
@@ -53,11 +53,33 @@ Your file never leaves your computer. The server only delivers the static page (
 | GPU (WebGPU) | on | ~4× faster decimation than CPU. |
 | Encoder threads | auto (≤ 4) | Parallel WebP/SOG encoders. |
 
-<!--PRESETS-->
+## Scene presets
+
+Pick the kind of scene instead of guessing settings. A preset sets only what the **file** controls; the splat budget, LOD distances and penalties belong to the viewer (SuperSplat uses 1M splats on phones and Quest/Pico in XR, 2–4M on desktops).
+
+| Preset | Coarsest level ≤ | Simplification | SH | Chunk K / size / min | Best for |
+|---|---|---|---|---|---|
+| **SuperSplat standard** | 1,000,000 | uniform | keep | 512 / 16 m / 8 | Same as superspl.at builds itself; desktops |
+| **City from a drone** | 250,000 | adaptive | none | 256 / 32 m / 32 | Large areas seen from above, phones and headsets |
+| **Streets at eye level** | 500,000 | adaptive | keep | 256 / 16 m / 8 | Walking through streets and squares |
+| **Rooms & interiors** | 500,000 | adaptive | keep | 256 / 8 m / 4 | Inside buildings, room by room |
+| **Object / small scan** | 500,000 | uniform | keep | 256 / 16 m / 8 | A statue, a car, one building |
+| **Light — phones & VR** | 250,000 | adaptive | none | 128 / 16 m / 8 | Weak devices first |
+
+![Scene presets on the page (Polish version)](docs/assets/screenshot-presets-pl.png)
+
+Every level keeps 50% of the previous one in all presets. Why these values (measured 2026-10-02 with the PlayCanvas engine 2.22.6 LOD classes on public superspl.at manifests and on the 259M-splat Lublin scan):
+
+- **The coarsest level is a floor.** The viewer starts every node at its coarsest level and never draws fewer splats than that level's total; SuperSplat downloads all of it before the first frame. With SuperSplat's default (stop at ≤ 1M), the floor is 0.5–1.0M — 50–100% of a phone's or headset's budget, so they can barely refine. Stopping at 250K gives them room and a ~4× lighter first frame (e.g. 9.5 → 2.4 MB without SH). The page shows the floor for your file as a percentage of a 1M budget.
+- **Chunk size = download granularity.** A unit file is downloaded whole; at 512K splats per unit the viewer keeps ~8× more splats resident than it draws. 128K units cut resident data by ~58–61%, at 4× more files.
+- **Aerial scans: fewer, larger nodes.** In dense drone scans node count is set by `chunkMin`/`chunkExtent`; 32 m / 32K gives 4× fewer nodes (manifest 31 → 7.9 MB, LOD pass ~5× cheaper) with identical views, flying down to street level included.
+- **Eye level: 16 m nodes.** 8 m gave no visible gain at 3× the nodes; 32 m made the near field coarser.
+- **Adaptive simplification is better on real scans:** level 2 (25% of the splats) rendered against the source from the same camera — **34.4 dB PSNR adaptive vs 28.0 dB uniform** on the Lublin sample. It needs about twice the working memory (more, smaller tiles).
+- **Dropping SH** (view-dependent colour) saves ~37% of the archive and removes a colour re-render pass in the viewer; keep it for interiors and objects with reflections.
+- **Not changed:** keep-per-level 0.5 (0.6 was worse in every simulated view and +25% data; 0.4's visual quality is not measured yet).
+
 
 ## Measured
-
-<!--MEASURED-->
 
 | Input | Where | Levels | Time | Archive | Check |
 |---|---|---|---|---|---|
@@ -101,7 +123,7 @@ Yes — the scene is processed in spatial tiles, so memory stays bounded. It tak
 
 **Works (verified):** binary PLY (little/big-endian, SH 0–3) → multi-LOD Streamed SOG `.zip`; spatial tiling beyond one tab's memory; ZIP64 archives > 4 GB (read back by our verifier and by Python `zipfile` with CRC check); WebGPU acceleration in Chrome; read-back verification; live progress with ETA; visible errors and anonymous error reports; feedback (bug / idea / cooperation); 4 languages (EN, ES, PL, RU).
 
-**In progress:** <!--INPROGRESS-->
+**In progress:** the full 259M-splat / 17.6 GB city scan conversion and its upload to superspl.at (2 Oct 2026).
 
 **Next:** resume after a crash or closed tab · optional direct upload to SuperSplat with your API token · separate sky/environment layer · compressed PLY and SPZ input · processing several tiles in parallel on many-core CPUs.
 

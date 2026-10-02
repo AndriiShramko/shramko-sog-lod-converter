@@ -10,6 +10,7 @@ import { sendReport, sizeBucket, track } from './api';
 import { browserInfo, describe, getRelease, gpuInfo, recentErrors } from './diagnostics';
 import { fmtBytes, fmtDuration, fmtInt, lang, t } from './i18n';
 import { loadSettings, readForm, saveSettings, writeForm, defaults, type UiSettings } from './settings';
+import { PRESETS, VIEWER_BUDGETS, matchPreset, type PresetId } from '../engine/presets';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const RUN_KEY = 'sog_run_v1';
@@ -178,6 +179,9 @@ const renderPlan = () => {
         [t('ui.facts.estOut'), `≈ ${fmtBytes(p.estimatedOutputBytes)}`],
         [t('ui.facts.tiles'), `${p.tiles} / ${p.passes}`]
     ];
+    const floor = p.levels[p.levels.length - 1];
+    const floorPct = Math.round((floor / VIEWER_BUDGETS.phoneOrVr) * 100);
+    facts.push([t('ui.facts.floor'), t('ui.floorValue', { n: fmtInt(floor), p: floorPct })]);
     if (header.extraProperties.length) facts.push([t('ui.facts.dropped'), header.extraProperties.join(', ')]);
     const dl = $('fi-facts');
     dl.innerHTML = '';
@@ -201,9 +205,10 @@ const renderPlan = () => {
     $('fi-plan-note').textContent = p.levels.length === 1 ?
         t('ui.oneLevel', { min: fmtInt(settings.minCoarsest) }) :
         t('ui.planNote', { levels: p.levels.length, total: fmtInt(total) });
-    if (p.estimatedOutputBytes > 10 * 1024 ** 3) {
-        showFileWarn(t('ui.over10', { size: fmtBytes(p.estimatedOutputBytes) }));
-    }
+    const warns: string[] = [];
+    if (p.estimatedOutputBytes > 10 * 1024 ** 3) warns.push(t('ui.over10', { size: fmtBytes(p.estimatedOutputBytes) }));
+    if (floor > 0.5 * VIEWER_BUDGETS.phoneOrVr) warns.push(t('ui.floorWarn'));
+    if (warns.length) showFileWarn(warns.join(' ')); else hideFileWarn();
 };
 
 const updateConvertButton = () => {
@@ -656,9 +661,28 @@ export const initConverter = () => {
     });
     $('fi-change').addEventListener('click', resetFile);
 
+    const syncPreset = () => {
+        const id = matchPreset(settings);
+        document.querySelectorAll<HTMLInputElement>('input[name=preset]').forEach((r) => {
+            r.checked = r.value === id;
+        });
+        $('preset-custom').hidden = id !== 'custom';
+    };
+    document.querySelectorAll<HTMLInputElement>('input[name=preset]').forEach((r) => {
+        r.addEventListener('change', () => {
+            if (!r.checked) return;
+            settings = { ...readForm(), ...PRESETS[r.value as PresetId] };
+            writeForm(settings);
+            saveSettings(settings);
+            syncPreset();
+            renderPlan();
+            track('preset', r.value);
+        });
+    });
     const onSettings = () => {
         settings = readForm();
         saveSettings(settings);
+        syncPreset();
         renderPlan();
     };
     $('advanced').addEventListener('change', onSettings);
@@ -666,8 +690,10 @@ export const initConverter = () => {
         settings = defaults();
         writeForm(settings);
         saveSettings(settings);
+        syncPreset();
         renderPlan();
     });
+    syncPreset();
 
     $('convert').addEventListener('click', () => {
         start().catch(e => finishWithError({ name: (e as Error).name, message: (e as Error).message, stack: (e as Error).stack }, 'header', 'starting', false));

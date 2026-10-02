@@ -89,6 +89,15 @@
   <div id="step-settings" class="card step">
     <div class="step-head"><span class="num">2</span><h3>{{app.step2}}</h3></div>
     <p class="muted">{{app.presetNote}}</p>
+    <div class="presets" role="radiogroup" aria-label="{{preset.label}}">
+      <label class="preset"><input type="radio" name="preset" value="standard"><span><b>{{preset.standard}}</b><small>{{preset.standardDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="aerial"><span><b>{{preset.aerial}}</b><small>{{preset.aerialDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="street"><span><b>{{preset.street}}</b><small>{{preset.streetDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="interior"><span><b>{{preset.interior}}</b><small>{{preset.interiorDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="object"><span><b>{{preset.object}}</b><small>{{preset.objectDesc}}</small></span></label>
+      <label class="preset"><input type="radio" name="preset" value="light"><span><b>{{preset.light}}</b><small>{{preset.lightDesc}}</small></span></label>
+    </div>
+    <p class="muted small" id="preset-custom" hidden>{{preset.custom}}</p>
     <details id="advanced" class="advanced">
       <summary>{{set.advanced}}</summary>
       <div class="set-grid">
@@ -226,6 +235,7 @@
     <details><summary>{{faq.q7}}</summary><p>{{faq.a7}}</p></details>
     <details><summary>{{faq.q8}}</summary><p>{{faq.a8}}</p></details>
     <details><summary>{{faq.q9}}</summary><p>{{faq.a9}}</p></details>
+    <details><summary>{{faq.q10}}</summary><p>{{faq.a10}}</p></details>
   </div>
 </section>
 

@@ -1,5 +1,7 @@
 // Same-origin calls to the site's tiny API (feedback, error reports, leads, cookieless counters).
 
+import { gaEvent, type GaParams } from './analytics';
+
 export type ReportKind = 'bug' | 'idea' | 'error';
 export type ReportPage = 'site' | 'convert';
 
@@ -56,11 +58,33 @@ export const sizeBucket = (bytes: number) => {
     return 'gt64g';
 };
 
+// The counter's one coarse value -> the GA4 parameter it goes to (never GA's numeric `value`).
+const GA_PARAM: Record<string, string> = {
+    lang_switch: 'lang_to',
+    file_selected: 'size_bucket',
+    convert_start: 'size_bucket',
+    convert_done: 'size_bucket',
+    convert_error: 'stage',
+    convert_cancel: 'stage',
+    gpu_unavailable: 'reason',
+    preset: 'preset',
+    save_fallback: 'method',
+    queue_add: 'count',
+    queue_start: 'count',
+    queue_done: 'count'
+};
+// counted on our server only: GA's page_view comes from gtag('config') alone (one per page load),
+// and a lead goes to GA as generate_lead {form_id, lead_type} (feedback.ts)
+const COUNTER_ONLY = new Set(['page_view', 'lead_submit']);
+// a navigation follows at once: GA must use sendBeacon
+const BEACON = new Set(['lang_switch']);
+
 /**
- * Cookieless first-party counter (`{e, p}`: event name + one coarse value from the API's list).
- * `props` go only to Google Analytics, and only after consent. Never throws.
+ * Cookieless first-party counter (`{e, p}`: event name + one coarse value from the API's list), and the
+ * same event in Google Analytics (only after consent) with `p` under its own parameter name plus
+ * `props`. Never throws.
  */
-export const track = (name: string, p?: string, props?: Record<string, string | number | boolean>) => {
+export const track = (name: string, p?: string, props?: GaParams) => {
     try {
         const body = JSON.stringify(p ? { e: name, p } : { e: name });
         if (navigator.sendBeacon) {
@@ -69,38 +93,8 @@ export const track = (name: string, p?: string, props?: Record<string, string | 
             fetch('/api/e', { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => undefined);
         }
     } catch { /* counters must never break the page */ }
-    gtagEvent(name, { ...(p ? { value: p } : {}), ...props });
-};
-
-// --- Google Analytics, loaded only after consent (Consent Mode: default denied)
-const GA_ID = (import.meta as unknown as { env: Record<string, string | undefined> }).env.VITE_GA_ID ?? '';
-let gaLoaded = false;
-type Gtag = (...args: unknown[]) => void;
-
-// gtag.js only recognises commands pushed as an `arguments` object (an array is ignored),
-// so this must be a classic function, not an arrow function with rest parameters.
-const gtag: Gtag = function gtagShim() {
-    const w = window as unknown as { dataLayer: unknown[] };
-    w.dataLayer = w.dataLayer || [];
-    // eslint-disable-next-line prefer-rest-params
-    w.dataLayer.push(arguments);
-};
-
-const gtagEvent = (name: string, props?: Record<string, unknown>) => {
-    if (gaLoaded) gtag('event', name, props ?? {});
-};
-
-export const gaAvailable = () => GA_ID.length > 0;
-
-export const loadGa = () => {
-    if (!GA_ID || gaLoaded) return;
-    gaLoaded = true;
-    (window as unknown as { gtag: Gtag }).gtag = gtag;
-    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'granted' });
-    gtag('js', new Date());
-    gtag('config', GA_ID, { anonymize_ip: true });
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`;
-    document.head.appendChild(s);
+    if (COUNTER_ONLY.has(name)) return;
+    const param = GA_PARAM[name];
+    const value = param === 'count' && p !== undefined ? Number(p) : p;
+    gaEvent(name, { ...(param && p !== undefined ? { [param]: value } : {}), ...props }, BEACON.has(name));
 };

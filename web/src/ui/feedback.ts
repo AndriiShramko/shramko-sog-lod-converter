@@ -1,5 +1,6 @@
 // Feedback on every screen: Bug · Idea · Cooperation (→ the contact form), plus the lead form.
 
+import { gaEvent } from './analytics';
 import { sendLead, sendReport, track } from './api';
 import { browserInfo, getRelease, gpuInfo, recentErrors } from './diagnostics';
 import { lang, listFormat, t } from './i18n';
@@ -7,6 +8,9 @@ import { lang, listFormat, t } from './i18n';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const MIN_MS = 3000;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// form_start comes from GA4 Enhanced Measurement (form interactions, ON in the stream) with form_id =
+// the form's id ("lead", "feedback"); sending our own as well would count every start twice.
 
 export const initFeedback = (getLog: () => string[]) => {
     const dlg = $<HTMLDialogElement>('fb');
@@ -56,6 +60,7 @@ export const initFeedback = (getLog: () => string[]) => {
         if (wait > 0) await new Promise(r => setTimeout(r, wait));
         const k = kind() === 'idea' ? 'idea' : 'bug';
         const withDiag = k === 'bug' && diag.checked;
+        gaEvent('form_submit', { form_id: 'feedback' });
         try {
             const r = await sendReport({
                 kind: k,
@@ -74,6 +79,7 @@ export const initFeedback = (getLog: () => string[]) => {
             p.textContent = t('ui.fbOk', { id: r.id });
             status.appendChild(p);
             msg.value = '';
+            gaEvent('feedback_send', { kind: k }); // after the server stored it
         } catch {
             status.textContent = t('ui.fbFail');
         } finally {
@@ -86,6 +92,13 @@ export const initFeedback = (getLog: () => string[]) => {
     const leadBtn = lead.querySelector<HTMLButtonElement>('button[type=submit]')!;
     const leadStatus = lead.querySelector<HTMLElement>('.form-status')!;
     const leadOpened = Date.now();
+    // form_step once per step reached: role picked, a valid e-mail, consent ticked (never the values)
+    const stepsDone = new Set<string>();
+    const step = (name: string, done: boolean) => {
+        if (!done || stepsDone.has(name)) return;
+        stepsDone.add(name);
+        gaEvent('form_step', { form_id: 'lead', step: name });
+    };
     const leadState = () => {
         const role = lead.querySelector<HTMLInputElement>('input[name=role]:checked')?.value ?? '';
         const email = lead.querySelector<HTMLInputElement>('input[name=email]')!.value.trim();
@@ -98,6 +111,9 @@ export const initFeedback = (getLog: () => string[]) => {
     };
     const leadSync = () => {
         const s = leadState();
+        step('role', !!s.role);
+        step('email', EMAIL.test(s.email));
+        step('consent', s.consent);
         leadBtn.disabled = s.missing.length > 0;
         leadStatus.textContent = s.missing.length ? t('ui.leadNeed', { missing: listFormat(s.missing) }) : '';
     };
@@ -112,6 +128,7 @@ export const initFeedback = (getLog: () => string[]) => {
         leadBtn.disabled = true;
         leadStatus.textContent = t('ui.fbSending');
         if (wait > 0) await new Promise(r => setTimeout(r, wait));
+        gaEvent('form_submit', { form_id: 'lead' });
         try {
             await sendLead({
                 role: s.role,
@@ -124,7 +141,9 @@ export const initFeedback = (getLog: () => string[]) => {
                 t: Date.now() - leadOpened
             });
             leadStatus.textContent = t('ui.leadOk');
-            track('lead_submit', undefined, { role: s.role });
+            track('lead_submit'); // server counter
+            // sendLead() resolves only on a 2xx answer: the lead is stored on the server
+            gaEvent('generate_lead', { form_id: 'lead', lead_type: s.role });
             lead.reset();
             leadBtn.disabled = true;
         } catch {

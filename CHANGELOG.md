@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 — 2026-10-21
+
+- **Analytics by the book** (contract: `docs/analytics.md`). One GA4 `page_view` per page load (the reload of a visitor who had accepted counted twice); event values go to named parameters (`lang_to`, `size_bucket`, `stage`, `preset`, …) instead of GA's numeric `value`; `cookie_domain` = the host.
+- *Cookie settings* in every footer re-opens the banner; *Decline* then turns GA off at once (`ga-disable`, consent denied) and deletes its cookies. Decline and Accept look the same.
+- New GA events: `section_view`, `cta_click`, `contact_click`, `copy_prompt`, `form_step`, `form_submit`, `generate_lead` (only after the server stored the lead), `feedback_send`, `file_download_click`, `exception`; conversions carry `duration_bucket` and `backend`.
+- The GA id is committed in `web/src/ga-id.json`; the build and `deploy/deploy.sh` refuse pages without it.
+- Privacy text (4 languages): what Google Analytics 4 stores, for how long, and how to withdraw; short-lived server access logs.
+
 ## 1.2.0 — 2026-10-02
 
 - **Queue (batch conversion).** *Add to queue* next to *Convert*: each file keeps its own orientation and preset; several files can be picked or dropped at once and are opened one by one for checking; files can be added while the queue runs. *Start the queue* asks for an output folder once; results are saved as `<name>-SSOG.zip` without further dialogs and never overwrite (`-2`, `-3`…). Per-file state, time left, bytes to write, *Copy the summary*, move/edit/retry/remove.

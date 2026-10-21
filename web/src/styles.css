@@ -237,6 +237,14 @@ ul.errors { color: var(--err); }
 }
 .consent-bar p { font-size: .9rem; }
 .consent-bar div { display: flex; gap: 8px; justify-content: flex-end; }
+/* Decline and Accept: one style, one size (WEB-TECH-BASELINE §T6: the same visual weight) */
+.consent-choice { flex: 0 1 9em; }
+.linkbtn {
+    background: none; border: 0; padding: 0; font: inherit; color: var(--accent2);
+    text-decoration: underline; cursor: pointer;
+}
+.linkbtn:hover { color: #9fdfff; }
+.linkbtn:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
 
 @media (max-width: 640px) {
     .nav { display: none; }

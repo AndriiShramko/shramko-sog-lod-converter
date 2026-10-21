@@ -1,0 +1,4 @@
+{
+  "gaId": "G-08SQDG920Y",
+  "note": "Public GA4 measurement id of sog.flyreelstudio.eu (not a secret). Committed on purpose: web/scripts/post-build.mjs and deploy/deploy.sh refuse a build whose pages do not carry exactly this id."
+}

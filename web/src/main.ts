@@ -3,20 +3,19 @@ import { installErrorCapture, loadRelease } from './ui/diagnostics';
 installErrorCapture();
 
 import './styles.css';
-import { gaAvailable, loadGa, track } from './ui/api';
+import { initAnalytics, gaEvent, where } from './ui/analytics';
+import { track } from './ui/api';
 import { initConverter } from './ui/converter';
 import { initFeedback } from './ui/feedback';
 import { initQueue } from './ui/queue';
 import { rememberLang, t } from './ui/i18n';
-
-const CONSENT_KEY = 'sog_consent';
 
 const initLangSwitch = () => {
     document.querySelectorAll<HTMLAnchorElement>('a[data-lang]').forEach((a) => {
         if (a.dataset.lang === document.documentElement.lang) a.setAttribute('aria-current', 'true');
         a.addEventListener('click', () => {
             rememberLang(a.dataset.lang!);
-            track('lang_switch', a.dataset.lang!);
+            track('lang_switch', a.dataset.lang!, { cta_location: where(a) });
         });
     });
 };
@@ -26,6 +25,7 @@ const initCopyButtons = () => {
         b.addEventListener('click', () => {
             const text = document.getElementById(b.dataset.copy!)?.textContent ?? '';
             navigator.clipboard.writeText(text).then(() => {
+                gaEvent('copy_prompt', { cta_location: where(b) });
                 const old = b.textContent;
                 b.textContent = t('ui.copied');
                 setTimeout(() => {
@@ -36,39 +36,19 @@ const initCopyButtons = () => {
     });
 };
 
-const initConsent = () => {
-    if (!gaAvailable()) return;
-    let choice: string | null = null;
-    try {
-        choice = localStorage.getItem(CONSENT_KEY);
-    } catch { /* ignore */ }
-    if (choice === 'yes') return loadGa();
-    if (choice === 'no') return;
-    const bar = document.getElementById('consent')!;
-    bar.hidden = false;
-    const set = (v: string) => {
-        try {
-            localStorage.setItem(CONSENT_KEY, v);
-        } catch { /* ignore */ }
-        bar.hidden = true;
-        if (v === 'yes') loadGa();
-    };
-    document.getElementById('consent-yes')!.addEventListener('click', () => set('yes'));
-    document.getElementById('consent-no')!.addEventListener('click', () => set('no'));
-};
-
 const logBuffer: string[] = [];
 
 const main = async () => {
+    initAnalytics(); // first: the banner must work even if a later init throws
     initLangSwitch();
     initCopyButtons();
     initConverter();
     initQueue();
     initFeedback(() => Array.from(document.getElementById('p-log')?.textContent?.split('\n') ?? logBuffer));
-    initConsent();
     const rel = await loadRelease();
     const el = document.getElementById('release');
     if (el) el.textContent = `release ${rel}`;
+    // the server counter's page_view; GA's comes from gtag('config') (ui/analytics.ts), never from here
     track('page_view', document.documentElement.lang);
 };
 

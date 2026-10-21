@@ -68,6 +68,25 @@ trap 'rm -rf "$WORK"' EXIT
 
 # ---------------------------------------------------------------------------------------------
 # step 1: the artifact
+# GA4 guard: each language page must load the measurement id committed in web/src/ga-id.json (in its
+# entry script or a chunk it preloads). A build without it = a site without analytics and without the
+# banner, and nothing else would notice (Drony Bydgoszcz lost 8 days of GA that way). Refuses to ship.
+check_ga() {
+  local rel="$1" ga lang refs r found
+  ga=$(grep -o '"gaId"[[:space:]]*:[[:space:]]*"G-[A-Z0-9]*"' "$ROOT/web/src/ga-id.json" 2>/dev/null | grep -o 'G-[A-Z0-9]*' || true)
+  [[ "$ga" =~ ^G-[A-Z0-9]{6,12}$ ]] || die "REFUSED: no GA measurement id in web/src/ga-id.json"
+  for lang in en es pl ru; do
+    [ -f "$rel/$lang/index.html" ] || die "REFUSED: $lang/index.html is missing from the build"
+    refs=$(grep -oE '<(script[^>]*[[:space:]]src|link[^>]*rel="modulepreload"[^>]*[[:space:]]href)="/?[^"]+\.js"' "$rel/$lang/index.html" | grep -oE '"/?[^"]+\.js"$' | tr -d '"' | sed 's#^/##' || true)
+    found=0
+    for r in $refs; do
+      [ -f "$rel/$r" ] && grep -qF "$ga" "$rel/$r" && found=1
+    done
+    [ "$found" = 1 ] || die "REFUSED: $lang/index.html does not load GA id $ga (scripts: ${refs:-none}). Build with npm run build; nothing was uploaded."
+  done
+  say "GA guard: $ga in every language page"
+}
+
 build_artifact() {
   [ -d "$DIST" ] || die "no $DIST: build the web app first (npm run build)"
   [ -f "$DIST/en/index.html" ] || die "$DIST/en/index.html is missing: not a complete build"
@@ -88,6 +107,7 @@ build_artifact() {
     source="content hash by deploy.sh (the build wrote no release.json with a sha)"
   fi
   [[ "$ID" =~ ^[0-9a-f]{12}$ ]] || die "could not determine the release id"
+  check_ga "$WORK/release"
   TGZ="$WORK/dist-$ID.tgz"
   tar -czf "$TGZ" -C "$WORK/release" .
   (cd "$WORK" && sha256sum "dist-$ID.tgz" > "dist-$ID.tgz.sha256")

@@ -33,10 +33,10 @@
     <span>Shramko&nbsp;SOG&nbsp;LOD&nbsp;Converter</span>
   </a>
   <nav class="nav" aria-label="{{nav.label}}">
-    <a href="#how">{{nav.how}}</a>
-    <a href="#faq">{{nav.faq}}</a>
-    <a href="#contact">{{nav.contact}}</a>
-    <a href="https://github.com/AndriiShramko/shramko-sog-lod-converter" rel="noopener" target="_blank">GitHub</a>
+    <a href="#how" data-cta="nav_how">{{nav.how}}</a>
+    <a href="#faq" data-cta="nav_faq">{{nav.faq}}</a>
+    <a href="#contact" data-cta="nav_contact">{{nav.contact}}</a>
+    <a href="https://github.com/AndriiShramko/shramko-sog-lod-converter" rel="noopener" target="_blank" data-cta="github_repo">GitHub</a>
   </nav>
   <div class="langs" role="group" aria-label="{{nav.language}}">
     <a href="/en/" hreflang="en" data-lang="en" lang="en">EN</a><a href="/es/" hreflang="es" data-lang="es" lang="es">ES</a><a href="/pl/" hreflang="pl" data-lang="pl" lang="pl">PL</a><a href="/ru/" hreflang="ru" data-lang="ru" lang="ru">RU</a>
@@ -45,10 +45,10 @@
 </header>
 
 <main>
-<section class="hero">
+<section id="hero" class="hero">
   <h1>{{hero.title}}</h1>
   <p class="lead">{{hero.lead}}</p>
-  <a class="byline" href="#contact">
+  <a class="byline" href="#contact" data-cta="byline">
     <picture><source type="image/webp" srcset="/img/andrii-shramko-160.webp"><img src="/img/andrii-shramko-160.jpg" alt="Andrii Shramko" width="40" height="40" decoding="async"></picture>
     <span>{{hero.by}}</span>
   </a>
@@ -202,7 +202,7 @@
 
     <p id="q-msg" class="small o-msg ok" aria-live="polite"></p>
 
-    <div id="queue" class="queue" hidden>
+    <div id="queue" class="queue" data-cta-loc="queue" hidden>
       <div class="q-head"><h4>{{queue.title}}</h4><span id="q-summary" class="muted small"></span></div>
       <p class="muted small">{{queue.lead}}</p>
       <ol id="q-list" class="q-list"></ol>
@@ -228,7 +228,7 @@
       <details class="log"><summary>{{app.log}}</summary><pre id="p-log"></pre><button id="copy-log" type="button" class="btn ghost small">{{app.copyLog}}</button></details>
     </div>
 
-    <div id="result" class="result" hidden></div>
+    <div id="result" class="result" data-cta-loc="result" hidden></div>
     <div id="error" class="error-box" role="alert" hidden></div>
   </div>
 </section>
@@ -314,10 +314,10 @@
   <p>{{contact.p1}}</p>
   <p><strong>{{contact.open}}</strong></p>
   <ul class="links">
-    <li><a href="https://calendar.app.google/Ff729HqGk4RpzPNDA" rel="noopener" target="_blank">{{contact.call}}</a></li>
-    <li><a href="https://www.linkedin.com/in/andrii-shramko/" rel="noopener" target="_blank">LinkedIn</a></li>
+    <li><a href="https://calendar.app.google/Ff729HqGk4RpzPNDA" rel="noopener" target="_blank" data-cta="book_call">{{contact.call}}</a></li>
+    <li><a href="https://www.linkedin.com/in/andrii-shramko/" rel="noopener" target="_blank" data-cta="linkedin">LinkedIn</a></li>
     <li><a href="mailto:zmei116@gmail.com">zmei116@gmail.com</a></li>
-    <li><a href="https://github.com/AndriiShramko" rel="noopener" target="_blank">GitHub</a></li>
+    <li><a href="https://github.com/AndriiShramko" rel="noopener" target="_blank" data-cta="github_profile">GitHub</a></li>
   </ul>
   <form id="lead" class="card lead" novalidate>
     <h3>{{lead.title}}</h3>
@@ -342,6 +342,7 @@
   <h2>{{privacy.title}}</h2>
   <p>{{privacy.p1}}</p>
   <p>{{privacy.p2}}</p>
+  <p>{{privacy.p4}}</p>
   <p>{{privacy.p3}}</p>
 </section>
 </main>
@@ -352,12 +353,13 @@
   <div class="langs" role="group" aria-label="{{nav.language}}">
     <a href="/en/" hreflang="en" data-lang="en" lang="en">English</a><a href="/es/" hreflang="es" data-lang="es" lang="es">Español</a><a href="/pl/" hreflang="pl" data-lang="pl" lang="pl">Polski</a><a href="/ru/" hreflang="ru" data-lang="ru" lang="ru">Русский</a>
   </div>
+  <p class="muted small"><button type="button" class="linkbtn" id="consent-open" aria-controls="consent">{{consent.settings}}</button> · <a href="#privacy">{{privacy.title}}</a></p>
   <p class="muted small"><span id="release"></span></p>
 </footer>
 
 <button id="fb-open" type="button" class="fb-btn">{{fb.button}}</button>
 <dialog id="fb" class="fb" aria-labelledby="fb-title">
-  <form method="dialog" class="fb-form" novalidate>
+  <form method="dialog" class="fb-form" id="feedback" novalidate>
     <div class="fb-head"><h2 id="fb-title">{{fb.title}}</h2><button type="button" class="btn ghost small" id="fb-close" aria-label="{{fb.close}}">✕</button></div>
     <div class="tabs" role="radiogroup" aria-label="{{fb.kindLabel}}">
       <label><input type="radio" name="kind" value="bug" checked><span>{{fb.bug}}</span></label>
@@ -374,14 +376,15 @@
       <label class="hp" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       <button type="button" class="btn primary" id="fb-send">{{fb.send}}</button>
     </div>
-    <div class="fb-coop" hidden><p>{{fb.coopText}}</p><a class="btn primary" href="#contact" id="fb-to-contact">{{fb.coopGo}}</a></div>
+    <div class="fb-coop" hidden><p>{{fb.coopText}}</p><a class="btn primary" href="#contact" id="fb-to-contact" data-cta="coop">{{fb.coopGo}}</a></div>
     <p class="form-status small" role="status" aria-live="polite"></p>
   </form>
 </dialog>
 
-<div id="consent" class="consent-bar" hidden>
+<div id="consent" class="consent-bar" role="region" aria-label="{{consent.settings}}" hidden>
   <p>{{consent.text}}</p>
-  <div><button type="button" class="btn ghost small" id="consent-no">{{consent.decline}}</button><button type="button" class="btn primary small" id="consent-yes">{{consent.accept}}</button></div>
+  <!-- Decline and Accept carry the same weight (WEB-TECH-BASELINE §T6) -->
+  <div><button type="button" class="btn small consent-choice" id="consent-no">{{consent.decline}}</button><button type="button" class="btn small consent-choice" id="consent-yes">{{consent.accept}}</button></div>
 </div>
 
 <script type="module" src="/src/main.ts"></script>

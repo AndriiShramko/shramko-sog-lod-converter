@@ -10,6 +10,7 @@ import { previewPlan, type PlanInfo, type Stage } from '../engine/plan';
 import type { PipelineResult } from '../engine/pipeline';
 import type { FromWorker, OutputTarget, StartMessage, WorkerErrorInfo } from '../engine/protocol';
 import type { VerifyReport } from '../engine/verify';
+import { durationBucket } from './analytics';
 import { sendReport, sizeBucket, track } from './api';
 import { browserInfo, describe, getRelease, gpuInfo, recentErrors } from './diagnostics';
 import { fmtBytes, fmtDuration, fmtInt, lang, t } from './i18n';
@@ -502,7 +503,7 @@ const beginRun = (job: JobSpec, output: OutputTarget, opts: RunOptions, opfsName
         holdWake();
 
         const s = job.settings;
-        track('convert_start', sizeBucket(job.file.size), { splats: job.input.vertexCount, levels: job.plan.levels.length, gpu: s.useGpu, mem: Math.round(s.memoryBytes / 1024 ** 3), queue: opts.mode === 'queue' });
+        track('convert_start', sizeBucket(job.file.size), { splats: job.input.vertexCount, levels: job.plan.levels.length, backend: s.useGpu ? 'gpu' : 'cpu', mem: Math.round(s.memoryBytes / 1024 ** 3), queue: opts.mode === 'queue' });
         log(`start: ${job.file.name}, ${fmtInt(job.input.vertexCount)} splats, ${fmtBytes(job.file.size)}, settings ${JSON.stringify(settingsForReport())}`);
         log(`orientation: rotate ${s.rotation.join(', ')}°, move ${s.translation.map(v => v.toFixed(2)).join(', ')}`);
 
@@ -659,7 +660,7 @@ const stopRun = (): RunState | null => {
 const finishOk = (result: Omit<PipelineResult, 'meta'>, verify: VerifyReport, outputName: string) => {
     if (!running) return;
     const r = stopRun()!;
-    track('convert_done', sizeBucket(r.job.file.size), { splats: r.job.input.vertexCount, levels: result.counts.length, seconds: Math.round(result.seconds), ok: verify.ok, mb: Math.round(result.archiveBytes / 1024 ** 2), queue: r.opts.mode === 'queue' });
+    track('convert_done', sizeBucket(r.job.file.size), { splats: r.job.input.vertexCount, levels: result.counts.length, seconds: Math.round(result.seconds), duration_bucket: durationBucket(result.seconds), ok: verify.ok, mb: Math.round(result.archiveBytes / 1024 ** 2), queue: r.opts.mode === 'queue' });
     log(`done: ${outputName}, ${result.counts.length} levels, ${fmtBytes(result.archiveBytes)}, ${fmtDuration(result.seconds)}, check ${verify.ok ? 'ok' : 'FAILED'}`);
     if (!verify.ok) {
         // report even in queue mode; the outcome still counts as written (the file exists)
@@ -725,6 +726,7 @@ const showResult = async (job: JobSpec, o: Extract<Outcome, { ok: true }>, opfsN
     go.target = '_blank';
     go.rel = 'noopener';
     go.textContent = t('ui.uploadBtn');
+    go.dataset.cta = 'superspl_upload';
     up.appendChild(go);
     box.appendChild(up);
 
@@ -732,6 +734,7 @@ const showResult = async (job: JobSpec, o: Extract<Outcome, { ok: true }>, opfsN
     again.type = 'button';
     again.className = 'btn ghost';
     again.textContent = t('ui.again');
+    again.dataset.cta = 'convert_again';
     again.addEventListener('click', () => {
         if (file === job.file) nextFile();
         else $('step-file').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -767,13 +770,13 @@ const finishWithError = async (error: WorkerErrorInfo, stage: Stage, detail: str
     const details = `${error.name}: ${error.message}\nfile: ${r.job.file.name}\nstage: ${stage} — ${detail}\nrelease: ${getRelease()}\n${error.stack ?? ''}\n\n${logLines.slice(-60).join('\n')}`;
     if (cancelled) {
         log(t('ui.cancelled'));
-        track('convert_cancel', stage);
+        track('convert_cancel', stage, { size_bucket: sizeBucket(r.job.file.size), duration_bucket: durationBucket((Date.now() - startedAt) / 1000), queue: r.opts.mode === 'queue' });
         if (r.opfsName) navigator.storage.getDirectory().then(d => d.removeEntry(r.opfsName!)).catch(() => undefined);
         r.resolve({ ok: false, error, stage, detail, cancelled: true, reportId: null, details });
         return;
     }
     log(`ERROR at ${stage} (${detail}): ${error.name}: ${error.message}`);
-    track('convert_error', stage);
+    track('convert_error', stage, { size_bucket: sizeBucket(r.job.file.size), duration_bucket: durationBucket((Date.now() - startedAt) / 1000), queue: r.opts.mode === 'queue' });
     let reportId: string | null = null;
     if (autoReportAllowed()) {
         reportId = await submitErrorFor(r, { message: `${error.name}: ${error.message}`, stage, extra: { stack: error.stack, error: { name: error.name, message: error.message, code: error.code, detail } } });

@@ -30,13 +30,16 @@ let loaded = false;  // gtag.js requested in this page
 let granted = false; // consent given and not withdrawn
 let deciding = false; // the banner was opened again from "Cookie settings": record nothing until a choice
 
+let rescanSections: (() => void) | null = null; // section_view of what is already on screen at Accept
+
 const siteLang = () => (document.documentElement.lang || 'und').slice(0, 5).toLowerCase();
+const recording = () => granted && !deciding;
 
 export type GaParams = Record<string, string | number | boolean | undefined>;
 
 /** A GA4 event, only while consent is granted. `beacon`: a navigation follows at once. Never throws. */
 export const gaEvent = (name: string, params: GaParams = {}, beacon = false) => {
-    if (!granted || deciding) return;
+    if (!recording()) return;
     try {
         const p: GaParams = { site_lang: siteLang() };
         for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') p[k] = v;
@@ -63,6 +66,7 @@ const grant = () => {
     w[`ga-disable-${GA_ID}`] = false;
     if (loaded) {
         gtag('consent', 'update', { analytics_storage: 'granted' });
+        rescanSections?.();
         return;
     }
     loaded = true;
@@ -75,6 +79,7 @@ const grant = () => {
     s.async = true;
     s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`;
     document.head.appendChild(s);
+    rescanSections?.();
 };
 
 /** Delete this property's cookies on the host and every parent domain (not the public suffix). */
@@ -144,6 +149,7 @@ const initSections = () => {
     if (!('IntersectionObserver' in window)) return;
     const seen = new Set<string>();
     const io = new IntersectionObserver((entries) => {
+        if (!recording()) return; // not seen yet: Accept re-checks what is on screen (rescanSections)
         for (const en of entries) {
             if (!en.isIntersecting) continue;
             const id = (en.target as HTMLElement).id;
@@ -155,7 +161,13 @@ const initSections = () => {
             gaEvent('section_view', { section_id: id.slice(0, 40) });
         }
     }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-    document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('main section[id]'));
+    targets.forEach(s => io.observe(s));
+    // observe() again reports the current state of each section once
+    rescanSections = () => targets.filter(s => !seen.has(s.id)).forEach((s) => {
+        io.unobserve(s);
+        io.observe(s);
+    });
 };
 
 /** exception for the site's own script errors: error name + a scrubbed message, at most 100 chars, 5 a page. */

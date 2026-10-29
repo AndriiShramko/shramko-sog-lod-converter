@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-29 — privacy text only (no version change)
+
+- Privacy text (4 languages): messages and the contact details a visitor gives are kept with no fixed time limit, until they ask for deletion (was: up to 12 months); the technical details of error reports are still deleted automatically after 180 days. The API never trimmed `reports.jsonl` or `leads.jsonl`.
+
 ## 1.2.1 — 2026-10-21
 
 - **Analytics by the book** (contract: `docs/analytics.md`). One GA4 `page_view` per page load (the reload of a visitor who had accepted counted twice); event values go to named parameters (`lang_to`, `size_bucket`, `stage`, `preset`, …) instead of GA's numeric `value`; `cookie_domain` = the host.
